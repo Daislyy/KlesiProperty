@@ -1,0 +1,62 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Agent, Skills & LLM Tooling files (Jangan include ke git)
+.agents/
+*/.agents/
+.taste-skill/
+*/.taste-skill/
+.opencode/
+*/.opencode/
+skills-lock.json
+AGENTS.md
+*/AGENTS.md
+*.agent.md
+
+# Environment files
+.env
+.env*.local
+*.env
+*/.env*
+!*.env.example
+
+# Next.js (Frontend)
+.next/
+*/.next/
+out/
+*/out/
+build/
+*/build/
+.vercel/
+*/.vercel/
+.turbo/
+
+# Backend uploads / storage
+be/uploads/*
+!be/uploads/.gitkeep
+uploads/*
+!uploads/.gitkeep
+
+# Logs & Debugging
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+*.log
+
+# OS & Editor specific files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# TypeScript cache
+*.tsbuildinfo
+next-env.d.ts
