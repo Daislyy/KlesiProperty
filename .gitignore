@@ -13,6 +13,8 @@ skills-lock.json
 AGENTS.md
 */AGENTS.md
 *.agent.md
+DESIGN.md
+*/DESIGN.md
 
 # Environment files
 .env

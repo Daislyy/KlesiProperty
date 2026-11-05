@@ -34,7 +34,7 @@ export interface Survey {
   survey_date: string;
   survey_time: string;
   message: string | null;
-  status: "baru" | "dikonfirmasi" | "selesai" | "dibatalkan";
+  status: "baru" | "dikonfirmasi" | "dihubungi" | "selesai" | "batal" | "dibatalkan" | string;
   created_at?: string;
   property_title?: string;
   property_slug?: string;

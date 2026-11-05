@@ -10,7 +10,7 @@ export const notFoundHandler = (req, res) => {
 
 // Tangkap semua error yang terjadi di aplikasi
 export const errorHandler = (err, req, res, next) => {
-  console.error('🔥 Error:', err.message);
+  console.error('Error:', err.message);
 
   // Error dari multer (upload file)
   if (err instanceof multer.MulterError) {
