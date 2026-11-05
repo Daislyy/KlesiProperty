@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { MapPin, ArrowRight, ShieldCheck, Check } from "lucide-react";
+import { MapPin, ArrowRight, ShieldCheck, Check, Sparkles, Calendar } from "lucide-react";
 import { Property } from "@/types";
 import { resolveImageUrl, formatRupiah } from "@/lib/api";
 
@@ -15,7 +15,7 @@ interface HeroProps {
 export default function Hero({ featuredProperty, onSelectDetail, onSelectSurvey }: HeroProps) {
   const property = featuredProperty;
 
-  // Estimasi KPR bulanan (DP 20%, 15 thn, 6.5%)
+  // Estimasi KPR bulanan (DP 20%, tenor 15 tahun, suku bunga 6.5%)
   const price = property?.price || 850000000;
   const principal = price * 0.8;
   const rate = 0.065 / 12;
@@ -26,122 +26,121 @@ export default function Hero({ featuredProperty, onSelectDetail, onSelectSurvey 
 
   return (
     <section className="pt-28 pb-16 lg:pt-36 lg:pb-24">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
-        {/* Kolom Narasi & Headline */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+        {/* Kolom Kiri: Narasi & Nilai Tambah */}
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="lg:col-span-7"
         >
-          {/* Tag Penanda Resmi */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#eaf6f0] text-[#1f8b5b] text-xs font-bold mb-6">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#28a870]" />
-            Katalog Properti Terkurasi · Area Bandung Raya
+          {/* Tag Wilayah Kurasi */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#eaf6f0] text-[#1f8b5b] text-xs font-bold rounded-full mb-6 border border-[#cce3d7]">
+            <span className="w-2 h-2 rounded-full bg-[#28a870] animate-pulse" />
+            <span>Katalog Properti Terkurasi · Area Bandung Raya</span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-extrabold tracking-tight text-[#0f1f1a] leading-[1.08] mb-6">
+          <h1 className="text-3xl sm:text-5xl lg:text-[52px] font-extrabold tracking-tight text-[#0f1f1a] leading-[1.12] mb-6">
             Hunian kurasi bergaransi legalitas di Bandung Raya.
           </h1>
 
           <p className="text-base sm:text-lg text-[#3d5047] leading-relaxed mb-8 max-w-xl">
-            Klesi Property memeriksa langsung riwayat sertifikat SHM ke BPN, menguji debit air tanah saat kemarau, dan mendokumentasikan kondisi fisik asli setiap unit sebelum dipasarkan.
+            Klesi Property memvalidasi langsung buku sertifikat SHM ke kantor BPN, menguji debit air tanah saat musim kemarau, dan memastikan konstruksi kokoh sebelum listing dipasarkan.
           </p>
 
-          {/* Tombol Aksi */}
+          {/* Tombol Aksi Utama - Bentuk Pill Lembut */}
           <div className="flex flex-wrap items-center gap-3.5 mb-10">
-            <motion.a
+            <a
               href="#katalog"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="px-6 py-3.5 text-sm font-bold text-white bg-[#28a870] hover:bg-[#1f8b5b] transition-colors flex items-center gap-2"
+              className="px-6 py-3.5 text-xs sm:text-sm font-bold text-white bg-[#28a870] hover:bg-[#1f8b5b] rounded-full transition-colors flex items-center gap-2 shadow-sm"
             >
-              Lihat Properti Tersedia
+              <span>Lihat Properti Tersedia</span>
               <ArrowRight className="w-4 h-4" />
-            </motion.a>
-            <motion.a
+            </a>
+            <a
               href="#survey"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="px-6 py-3.5 text-sm font-bold text-[#0f1f1a] bg-[#eaf6f0] hover:bg-[#d8ece1] transition-colors"
+              className="px-6 py-3.5 text-xs sm:text-sm font-bold text-[#0f1f1a] bg-[#eaf6f0] hover:bg-[#d8ece1] rounded-full transition-colors border border-[#cce3d7]"
             >
               Jadwalkan Survey Lokasi
-            </motion.a>
+            </a>
           </div>
 
-          {/* Protokol Verifikasi 4 Titik */}
-          <div className="bg-[#f0f6f3] p-5">
-            <p className="text-xs font-bold text-[#0f1f1a] mb-2.5">
-              Protokol verifikasi wajib tiap unit:
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-[#3d5047]">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center shrink-0">
-                  <Check className="w-3 h-3 text-[#28a870]" />
+          {/* Card Standar Pemeriksaan Cepat - Sudut Membulat Nyaman */}
+          <div className="bg-[#eef7f2] border border-[#d6e8dc] rounded-2xl p-5 sm:p-6 shadow-[0_2px_12px_rgba(40,168,112,0.04)]">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="w-4 h-4 text-[#28a870]" />
+              <p className="text-xs font-bold text-[#0f1f1a]">
+                4 Titik Pemeriksaan Wajib Setiap Listing:
+              </p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-semibold text-[#3d5047]">
+              <div className="flex items-center gap-2 bg-white/80 px-2.5 py-1.5 rounded-xl border border-[#dbe8e0]">
+                <div className="w-4 h-4 rounded-full bg-[#28a870] flex items-center justify-center shrink-0">
+                  <Check className="w-2.5 h-2.5 text-white" />
                 </div>
-                <span>Validasi SHM BPN</span>
+                <span>SHM BPN</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center shrink-0">
-                  <Check className="w-3 h-3 text-[#28a870]" />
+              <div className="flex items-center gap-2 bg-white/80 px-2.5 py-1.5 rounded-xl border border-[#dbe8e0]">
+                <div className="w-4 h-4 rounded-full bg-[#28a870] flex items-center justify-center shrink-0">
+                  <Check className="w-2.5 h-2.5 text-white" />
                 </div>
-                <span>Uji Mutu Struktur</span>
+                <span>Uji Struktur</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center shrink-0">
-                  <Check className="w-3 h-3 text-[#28a870]" />
+              <div className="flex items-center gap-2 bg-white/80 px-2.5 py-1.5 rounded-xl border border-[#dbe8e0]">
+                <div className="w-4 h-4 rounded-full bg-[#28a870] flex items-center justify-center shrink-0">
+                  <Check className="w-2.5 h-2.5 text-white" />
                 </div>
-                <span>Cek Sanitasi & Air</span>
+                <span>Uji Air & Limbah</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center shrink-0">
-                  <Check className="w-3 h-3 text-[#28a870]" />
+              <div className="flex items-center gap-2 bg-white/80 px-2.5 py-1.5 rounded-xl border border-[#dbe8e0]">
+                <div className="w-4 h-4 rounded-full bg-[#28a870] flex items-center justify-center shrink-0">
+                  <Check className="w-2.5 h-2.5 text-white" />
                 </div>
-                <span>ROW Jalan ≥ 6 Meter</span>
+                <span>ROW Jalan ≥ 6M</span>
               </div>
             </div>
           </div>
         </motion.div>
 
-        {/* Kolom Visual Listing Unggulan */}
+        {/* Kolom Kanan: Kartu Properti Kurasi Utama */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.97 }}
+          initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:col-span-5 relative"
+          transition={{ duration: 0.7, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
+          className="lg:col-span-5"
         >
-          <div className="bg-white p-2.5 shadow-sm">
-            {/* Foto Properti Utama */}
-            <div className="relative h-[340px] sm:h-[400px] w-full bg-[#e2ede7] overflow-hidden group">
+          <div className="bg-white p-4 sm:p-5 rounded-3xl border border-[#dce9e1] shadow-[0_12px_40px_rgba(15,31,26,0.06)] hover:shadow-[0_16px_50px_rgba(15,31,26,0.09)] transition-shadow">
+            {/* Frame Foto Membulat */}
+            <div className="relative h-64 sm:h-72 w-full bg-[#e2ede7] rounded-2xl overflow-hidden group">
               <Image
                 src={resolveImageUrl(property?.primary_image)}
                 alt={property?.title || "Properti Kurasi"}
                 fill
                 priority
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
-                sizes="(max-width: 1024px) 100vw, 540px"
+                sizes="(max-width: 1024px) 100vw, 500px"
               />
 
-              {/* Status Pill */}
-              <div className="absolute top-3 left-3 flex gap-2">
-                <span className="bg-[#0f1f1a] text-white text-[11px] font-bold px-2.5 py-1">
-                  Unit Kurasi Utama
+              {/* Badges Pill Melayang */}
+              <div className="absolute top-3 left-3 flex gap-1.5">
+                <span className="bg-[#0f1f1a]/90 backdrop-blur-sm text-white text-[10px] font-bold px-3 py-1 rounded-full">
+                  Pilihan Utama
                 </span>
-                <span className="bg-[#28a870] text-white text-[11px] font-bold px-2.5 py-1 flex items-center gap-1">
+                <span className="bg-[#28a870] text-white text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
                   <ShieldCheck className="w-3 h-3" />
                   SHM Bersih
                 </span>
               </div>
 
-              <div className="absolute top-3 right-3 bg-white/95 text-[#0f1f1a] text-xs font-bold px-2.5 py-1">
+              <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm text-[#0f1f1a] text-[10px] font-bold px-3 py-1 rounded-full shadow-sm">
                 {property?.location || "Bandung Barat"}
               </div>
             </div>
 
-            {/* Info Box di Bawah Foto */}
-            <div className="p-5 bg-white">
+            {/* Konten Informasi Properti */}
+            <div className="pt-4 px-1">
               <div className="flex items-baseline justify-between mb-1.5">
-                <h2 className="text-xl font-bold text-[#0f1f1a] line-clamp-1">
+                <h2 className="text-lg font-bold text-[#0f1f1a] line-clamp-1">
                   {property?.title || "Rumah Kebun Parahyangan"}
                 </h2>
                 <span className="text-lg font-extrabold text-[#28a870] shrink-0">
@@ -149,41 +148,42 @@ export default function Hero({ featuredProperty, onSelectDetail, onSelectSurvey 
                 </span>
               </div>
 
-              <p className="text-xs text-[#6a8075] flex items-center gap-1 mb-4">
+              <p className="text-xs text-[#6a8075] flex items-center gap-1.5 mb-4">
                 <MapPin className="w-3.5 h-3.5 text-[#28a870] shrink-0" />
-                <span>{property?.address || "Jl. Kolonel Masturi No. 42, Cisarua"}</span>
+                <span className="truncate">{property?.address || "Jl. Kolonel Masturi No. 42"}</span>
               </p>
 
-              {/* Spesifikasi Ringkas */}
-              <div className="grid grid-cols-4 gap-2 py-2.5 px-3 bg-[#f7faf8] text-center mb-4">
+              {/* Spesifikasi Grid 4 Kotak Lembut */}
+              <div className="grid grid-cols-4 gap-2 p-2.5 bg-[#f7faf8] rounded-xl text-center mb-4 border border-[#edf3f0]">
                 <div>
-                  <p className="text-[11px] text-[#6a8075]">K. Tidur</p>
+                  <p className="text-[10px] text-[#6a8075]">K. Tidur</p>
                   <p className="text-xs font-bold text-[#0f1f1a]">{property?.bedrooms || 3} KT</p>
                 </div>
                 <div>
-                  <p className="text-[11px] text-[#6a8075]">K. Mandi</p>
+                  <p className="text-[10px] text-[#6a8075]">K. Mandi</p>
                   <p className="text-xs font-bold text-[#0f1f1a]">{property?.bathrooms || 2} KM</p>
                 </div>
                 <div>
-                  <p className="text-[11px] text-[#6a8075]">L. Tanah</p>
+                  <p className="text-[10px] text-[#6a8075]">L. Tanah</p>
                   <p className="text-xs font-bold text-[#0f1f1a]">{property?.land_area || 140} m²</p>
                 </div>
                 <div>
-                  <p className="text-[11px] text-[#6a8075]">Bangunan</p>
+                  <p className="text-[10px] text-[#6a8075]">Bangunan</p>
                   <p className="text-xs font-bold text-[#0f1f1a]">{property?.building_area || 88} m²</p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-xs">
+              {/* Baris Cicilan & Aksi Langsung */}
+              <div className="flex items-center justify-between text-xs pt-1">
                 <div className="text-[#3d5047]">
-                  Cicilan KPR: <span className="font-bold text-[#1f8b5b]">{formatRupiah(estInstallment)}/bln</span>
+                  Cicilan: <span className="font-bold text-[#1f8b5b]">{formatRupiah(estInstallment)}/bln</span>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   {property && onSelectDetail && (
                     <button
                       type="button"
                       onClick={() => onSelectDetail(property)}
-                      className="font-bold text-xs text-[#0f1f1a] hover:text-[#28a870] underline underline-offset-4"
+                      className="px-3 py-1.5 rounded-full text-xs font-bold text-[#0f1f1a] bg-[#f0f6f3] hover:bg-[#e2ede7] transition-colors cursor-pointer"
                     >
                       Detail
                     </button>
@@ -191,9 +191,10 @@ export default function Hero({ featuredProperty, onSelectDetail, onSelectSurvey 
                   <a
                     href="#survey"
                     onClick={() => onSelectSurvey && property && onSelectSurvey(property.id)}
-                    className="font-bold text-xs text-[#28a870] hover:text-[#1f8b5b] underline underline-offset-4"
+                    className="px-3.5 py-1.5 rounded-full text-xs font-bold text-white bg-[#28a870] hover:bg-[#1f8b5b] transition-colors flex items-center gap-1 shadow-sm"
                   >
-                    Atur Survey
+                    <Calendar className="w-3 h-3" />
+                    <span>Survey</span>
                   </a>
                 </div>
               </div>
