@@ -1,206 +1,169 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "framer-motion";
-import { MapPin, ArrowRight, ShieldCheck, Check, Sparkles, Calendar } from "lucide-react";
+import { ArrowDown, Calendar, Search, MapPin, Maximize2, Bed, Bath } from "lucide-react";
 import { Property } from "@/types";
 import { resolveImageUrl, formatRupiah } from "@/lib/api";
 
 interface HeroProps {
   featuredProperty?: Property;
   onSelectDetail?: (p: Property) => void;
-  onSelectSurvey?: (id: number) => void;
+  onSelectSurvey?: (id?: number) => void;
 }
 
-export default function Hero({ featuredProperty, onSelectDetail, onSelectSurvey }: HeroProps) {
-  const property = featuredProperty;
+export default function Hero({
+  featuredProperty,
+  onSelectDetail,
+  onSelectSurvey,
+}: HeroProps) {
+  const scrollToKatalog = () => {
+    const el = document.getElementById("katalog");
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
 
-  // Estimasi KPR bulanan (DP 20%, tenor 15 tahun, suku bunga 6.5%)
-  const price = property?.price || 850000000;
-  const principal = price * 0.8;
-  const rate = 0.065 / 12;
-  const months = 180;
-  const estInstallment = Math.round(
-    (principal * (rate * Math.pow(1 + rate, months))) / (Math.pow(1 + rate, months) - 1)
-  );
+  const scrollToSurvey = () => {
+    if (onSelectSurvey && featuredProperty) {
+      onSelectSurvey(featuredProperty.id);
+      return;
+    }
+    const el = document.getElementById("survey");
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Ambil gambar utama dari properti unggulan, atau gambar default arsitektural jika belum ada
+  const heroImage =
+    featuredProperty?.primary_image ||
+    featuredProperty?.images?.[0]?.image_url ||
+    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=85";
 
   return (
-    <section className="pt-28 pb-16 lg:pt-36 lg:pb-24">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
-        {/* Kolom Kiri: Narasi & Nilai Tambah */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:col-span-7"
-        >
-          {/* Tag Wilayah Kurasi */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#eaf6f0] text-[#1f8b5b] text-xs font-bold rounded-full mb-6 border border-[#cce3d7]">
-            <span className="w-2 h-2 rounded-full bg-[#28a870] animate-pulse" />
-            <span>Katalog Properti Terkurasi · Area Bandung Raya</span>
+    <section className="relative w-full pt-28 sm:pt-36 pb-14 sm:pb-24 bg-gradient-to-b from-[#111317] via-[#20242c] to-[#faf9f6] overflow-hidden">
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        {/* Main Editorial Headline */}
+        <div className="max-w-3xl mx-auto space-y-4 rise">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 border border-white/20 text-white/90 text-[11px] font-medium uppercase tracking-widest backdrop-blur-md">
+            Kurasi Properti Eksklusif Jabodetabek
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-[52px] font-extrabold tracking-tight text-[#0f1f1a] leading-[1.12] mb-6">
-            Hunian kurasi bergaransi legalitas di Bandung Raya.
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.06]">
+            More Comfortable.
+            <br />
+            More Classy.
           </h1>
 
-          <p className="text-base sm:text-lg text-[#3d5047] leading-relaxed mb-8 max-w-xl">
-            Klesi Property memvalidasi langsung buku sertifikat SHM ke kantor BPN, menguji debit air tanah saat musim kemarau, dan memastikan konstruksi kokoh sebelum listing dipasarkan.
+          <p className="text-sm sm:text-base text-white/80 max-w-xl mx-auto font-normal leading-relaxed">
+            Pilihan hunian modern dan investasi lahan berlegalitas aman di koridor Jabodetabek dengan kantor operasional di Kota Depok.
           </p>
 
-          {/* Tombol Aksi Utama - Bentuk Pill Lembut */}
-          <div className="flex flex-wrap items-center gap-3.5 mb-10">
-            <a
-              href="#katalog"
-              className="px-6 py-3.5 text-xs sm:text-sm font-bold text-white bg-[#28a870] hover:bg-[#1f8b5b] rounded-full transition-colors flex items-center gap-2 shadow-sm"
+          {/* Action CTA Buttons */}
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+            <button
+              onClick={scrollToKatalog}
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white text-neutral-950 text-xs sm:text-sm font-semibold shadow-lg hover:bg-neutral-100 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
             >
-              <span>Lihat Properti Tersedia</span>
-              <ArrowRight className="w-4 h-4" />
-            </a>
-            <a
-              href="#survey"
-              className="px-6 py-3.5 text-xs sm:text-sm font-bold text-[#0f1f1a] bg-[#eaf6f0] hover:bg-[#d8ece1] rounded-full transition-colors border border-[#cce3d7]"
+              <span>Jelajahi Unit</span>
+              <ArrowDown className="w-4 h-4 text-neutral-700" />
+            </button>
+            <button
+              onClick={scrollToSurvey}
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/10 text-white text-xs sm:text-sm font-medium border border-white/25 backdrop-blur-md hover:bg-white/20 transition-all duration-200 cursor-pointer"
             >
-              Jadwalkan Survey Lokasi
-            </a>
+              <Calendar className="w-4 h-4 text-white" />
+              <span>Jadwalkan Survey</span>
+            </button>
           </div>
 
-          {/* Card Standar Pemeriksaan Cepat - Sudut Membulat Nyaman */}
-          <div className="bg-[#eef7f2] border border-[#d6e8dc] rounded-2xl p-5 sm:p-6 shadow-[0_2px_12px_rgba(40,168,112,0.04)]">
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-4 h-4 text-[#28a870]" />
-              <p className="text-xs font-bold text-[#0f1f1a]">
-                4 Titik Pemeriksaan Wajib Setiap Listing:
-              </p>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-semibold text-[#3d5047]">
-              <div className="flex items-center gap-2 bg-white/80 px-2.5 py-1.5 rounded-xl border border-[#dbe8e0]">
-                <div className="w-4 h-4 rounded-full bg-[#28a870] flex items-center justify-center shrink-0">
-                  <Check className="w-2.5 h-2.5 text-white" />
-                </div>
-                <span>SHM BPN</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/80 px-2.5 py-1.5 rounded-xl border border-[#dbe8e0]">
-                <div className="w-4 h-4 rounded-full bg-[#28a870] flex items-center justify-center shrink-0">
-                  <Check className="w-2.5 h-2.5 text-white" />
-                </div>
-                <span>Uji Struktur</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/80 px-2.5 py-1.5 rounded-xl border border-[#dbe8e0]">
-                <div className="w-4 h-4 rounded-full bg-[#28a870] flex items-center justify-center shrink-0">
-                  <Check className="w-2.5 h-2.5 text-white" />
-                </div>
-                <span>Uji Air & Limbah</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/80 px-2.5 py-1.5 rounded-xl border border-[#dbe8e0]">
-                <div className="w-4 h-4 rounded-full bg-[#28a870] flex items-center justify-center shrink-0">
-                  <Check className="w-2.5 h-2.5 text-white" />
-                </div>
-                <span>ROW Jalan ≥ 6M</span>
-              </div>
+          {/* Minimalist Quick Search Bar */}
+          <div className="pt-2 max-w-md mx-auto">
+            <div
+              onClick={scrollToKatalog}
+              className="flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-white/95 backdrop-blur-md shadow-xl border border-white/30 cursor-pointer hover:bg-white transition-all text-left group"
+            >
+              <Search className="w-4 h-4 text-neutral-400 group-hover:text-neutral-900 transition-colors shrink-0" />
+              <span className="text-xs sm:text-sm text-neutral-500 flex-1 truncate font-normal">
+                Cari unit di Depok, Bogor, Jakarta, Bekasi, Tangerang...
+              </span>
+              <span className="px-3 py-1 rounded-full bg-neutral-950 text-white text-[11px] font-semibold group-hover:bg-neutral-800 transition-colors">
+                Cari
+              </span>
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        {/* Kolom Kanan: Kartu Properti Kurasi Utama */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.7, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:col-span-5"
-        >
-          <div className="bg-white p-4 sm:p-5 rounded-3xl border border-[#dce9e1] shadow-[0_12px_40px_rgba(15,31,26,0.06)] hover:shadow-[0_16px_50px_rgba(15,31,26,0.09)] transition-shadow">
-            {/* Frame Foto Membulat */}
-            <div className="relative h-64 sm:h-72 w-full bg-[#e2ede7] rounded-2xl overflow-hidden group">
-              <Image
-                src={resolveImageUrl(property?.primary_image)}
-                alt={property?.title || "Properti Kurasi"}
-                fill
-                priority
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
-                sizes="(max-width: 1024px) 100vw, 500px"
-              />
+        {/* Centerpiece Modern Architectural Showcase */}
+        <div className="mt-10 sm:mt-14 relative max-w-4xl mx-auto rise-2">
+          <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full rounded-lg sm:rounded-xl overflow-hidden shadow-2xl border border-white/15">
+            <Image
+              src={resolveImageUrl(heroImage)}
+              alt={featuredProperty ? featuredProperty.title : "Hunian Unggulan KlesiProperty"}
+              fill
+              priority
+              fetchPriority="high"
+              sizes="(max-width: 768px) 100vw, 1200px"
+              className="object-cover object-center transition-transform duration-700 hover:scale-105"
+            />
+            {/* Smooth Monochromatic Fade at the Bottom */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#faf9f6] via-transparent to-transparent opacity-80 sm:opacity-70 pointer-events-none" />
 
-              {/* Badges Pill Melayang */}
-              <div className="absolute top-3 left-3 flex gap-1.5">
-                <span className="bg-[#0f1f1a]/90 backdrop-blur-sm text-white text-[10px] font-bold px-3 py-1 rounded-full">
-                  Pilihan Utama
-                </span>
-                <span className="bg-[#28a870] text-white text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                  <ShieldCheck className="w-3 h-3" />
-                  SHM Bersih
-                </span>
-              </div>
-
-              <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm text-[#0f1f1a] text-[10px] font-bold px-3 py-1 rounded-full shadow-sm">
-                {property?.location || "Bandung Barat"}
-              </div>
-            </div>
-
-            {/* Konten Informasi Properti */}
-            <div className="pt-4 px-1">
-              <div className="flex items-baseline justify-between mb-1.5">
-                <h2 className="text-lg font-bold text-[#0f1f1a] line-clamp-1">
-                  {property?.title || "Rumah Kebun Parahyangan"}
-                </h2>
-                <span className="text-lg font-extrabold text-[#28a870] shrink-0">
-                  {formatRupiah(price)}
-                </span>
-              </div>
-
-              <p className="text-xs text-[#6a8075] flex items-center gap-1.5 mb-4">
-                <MapPin className="w-3.5 h-3.5 text-[#28a870] shrink-0" />
-                <span className="truncate">{property?.address || "Jl. Kolonel Masturi No. 42"}</span>
-              </p>
-
-              {/* Spesifikasi Grid 4 Kotak Lembut */}
-              <div className="grid grid-cols-4 gap-2 p-2.5 bg-[#f7faf8] rounded-xl text-center mb-4 border border-[#edf3f0]">
-                <div>
-                  <p className="text-[10px] text-[#6a8075]">K. Tidur</p>
-                  <p className="text-xs font-bold text-[#0f1f1a]">{property?.bedrooms || 3} KT</p>
+            {/* Info Keterangan Properti Unggulan di Hero Section */}
+            {featuredProperty && (
+              <div className="absolute bottom-4 left-4 right-4 sm:right-auto sm:max-w-md p-4 sm:p-5 rounded-lg bg-neutral-950/90 backdrop-blur-md text-white border border-white/15 text-left shadow-2xl z-10">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="px-2 py-0.5 rounded bg-white text-neutral-950 text-[10px] font-black uppercase tracking-widest">
+                    Properti Unggulan
+                  </span>
+                  <span className="text-[11px] text-neutral-300 font-medium capitalize">
+                    {featuredProperty.type} &bull; SHM
+                  </span>
                 </div>
-                <div>
-                  <p className="text-[10px] text-[#6a8075]">K. Mandi</p>
-                  <p className="text-xs font-bold text-[#0f1f1a]">{property?.bathrooms || 2} KM</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-[#6a8075]">L. Tanah</p>
-                  <p className="text-xs font-bold text-[#0f1f1a]">{property?.land_area || 140} m²</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-[#6a8075]">Bangunan</p>
-                  <p className="text-xs font-bold text-[#0f1f1a]">{property?.building_area || 88} m²</p>
-                </div>
-              </div>
 
-              {/* Baris Cicilan & Aksi Langsung */}
-              <div className="flex items-center justify-between text-xs pt-1">
-                <div className="text-[#3d5047]">
-                  Cicilan: <span className="font-bold text-[#1f8b5b]">{formatRupiah(estInstallment)}/bln</span>
+                <h3 className="text-sm sm:text-base font-bold text-white tracking-tight line-clamp-1 mb-1">
+                  {featuredProperty.title}
+                </h3>
+
+                <div className="flex items-center gap-1 text-xs text-neutral-300 mb-3">
+                  <MapPin className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                  <span className="truncate">{featuredProperty.location}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  {property && onSelectDetail && (
+
+                {/* Spesifikasi & Aksi */}
+                <div className="flex items-center justify-between gap-4 pt-2 border-t border-white/15">
+                  <div>
+                    <span className="text-[10px] text-neutral-400 block uppercase font-medium">
+                      Harga Penawaran
+                    </span>
+                    <span className="text-base sm:text-lg font-extrabold text-white tracking-tight">
+                      {formatRupiah(featuredProperty.price)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {onSelectDetail && (
+                      <button
+                        type="button"
+                        onClick={() => onSelectDetail(featuredProperty)}
+                        className="px-3 py-1.5 rounded bg-white text-neutral-950 text-xs font-bold hover:bg-neutral-200 transition-colors cursor-pointer shadow-xs"
+                      >
+                        Detail
+                      </button>
+                    )}
                     <button
                       type="button"
-                      onClick={() => onSelectDetail(property)}
-                      className="px-3 py-1.5 rounded-full text-xs font-bold text-[#0f1f1a] bg-[#f0f6f3] hover:bg-[#e2ede7] transition-colors cursor-pointer"
+                      onClick={() => {
+                        if (onSelectSurvey) onSelectSurvey(featuredProperty.id);
+                        const el = document.getElementById("survey");
+                        if (el) el.scrollIntoView({ behavior: "smooth" });
+                      }}
+                      className="px-3 py-1.5 rounded bg-white/20 hover:bg-white/30 text-white text-xs font-medium transition-colors cursor-pointer"
                     >
-                      Detail
+                      Survey
                     </button>
-                  )}
-                  <a
-                    href="#survey"
-                    onClick={() => onSelectSurvey && property && onSelectSurvey(property.id)}
-                    className="px-3.5 py-1.5 rounded-full text-xs font-bold text-white bg-[#28a870] hover:bg-[#1f8b5b] transition-colors flex items-center gap-1 shadow-sm"
-                  >
-                    <Calendar className="w-3 h-3" />
-                    <span>Survey</span>
-                  </a>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ShieldCheck, Menu, X, ArrowUpRight } from "lucide-react";
+import { Menu, X, ArrowUpRight } from "lucide-react";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeNav, setActiveNav] = useState("beranda");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,7 +18,12 @@ export default function Navbar() {
 
   const scrollTo = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
     e.preventDefault();
+    setActiveNav(targetId);
     setMobileMenuOpen(false);
+    if (targetId === "beranda") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
     const element = document.getElementById(targetId);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
@@ -26,99 +32,123 @@ export default function Navbar() {
 
   const navLinks = [
     { label: "Katalog", id: "katalog" },
-    { label: "Standar Audit", id: "standar" },
-    { label: "Simulasi KPR", id: "kpr" },
-    { label: "Jadwal Survey", id: "survey" },
+    { label: "Keunggulan", id: "keunggulan" },
+    { label: "Testimoni", id: "testimoni" },
+    { label: "FAQ", id: "faq" },
+    { label: "Survey", id: "survey" },
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 pt-4 pb-2 transition-all duration-300">
-      <div
-        className={`max-w-6xl mx-auto px-5 sm:px-7 py-3 rounded-full transition-all duration-300 flex items-center justify-between ${
-          scrolled
-            ? "bg-white/95 backdrop-blur-md shadow-[0_8px_30px_rgba(15,31,26,0.08)] border border-[#d6e5dd]"
-            : "bg-white/80 backdrop-blur-sm border border-[#e2ede7] shadow-[0_4px_20px_rgba(15,31,26,0.04)]"
-        }`}
-      >
-        {/* Brandmark dengan sudut membulat lembut */}
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "bg-white/95 backdrop-blur-md border-b border-neutral-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] py-3"
+          : "bg-transparent py-5"
+      }`}
+    >
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        {/* Left: Location Badge */}
+        <div className="flex items-center gap-3">
+          <a
+            href="#katalog"
+            onClick={(e) => scrollTo(e, "katalog")}
+            className={`hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium tracking-wide transition-colors ${
+              scrolled
+                ? "bg-neutral-100 text-neutral-800 hover:bg-neutral-200"
+                : "bg-white/15 text-white backdrop-blur-md border border-white/20 hover:bg-white/25"
+            }`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
+            Jabodetabek
+          </a>
+        </div>
+
+        {/* Center: Brand Monogram / Logo */}
         <a
           href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            window.scrollTo({ top: 0, behavior: "smooth" });
-          }}
-          className="flex items-center gap-2.5 text-lg sm:text-xl font-extrabold tracking-tight text-[#0f1f1a]"
+          onClick={(e) => scrollTo(e, "beranda")}
+          className="flex items-center gap-2 group"
         >
-          <div className="w-8 h-8 rounded-xl bg-[#0f1f1a] text-[#3ecf8e] flex items-center justify-center font-bold text-xs tracking-tighter shadow-sm">
-            KP
-          </div>
-          <span className="flex items-center">
-            Klesi<span className="text-[#28a870]">Property</span>
-          </span>
-          <span className="hidden lg:inline-flex items-center gap-1 text-[11px] font-semibold text-[#1f8b5b] bg-[#eaf6f0] px-2.5 py-0.5 rounded-full ml-1.5 border border-[#cce3d7]">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#28a870]" />
-            SHM Terverifikasi
+          <span
+            className={`font-extrabold text-xl sm:text-2xl tracking-tight uppercase transition-colors ${
+              scrolled ? "text-neutral-950" : "text-white"
+            }`}
+          >
+            KlesiProperty<span className={scrolled ? "text-neutral-900" : "text-white"}>.</span>
           </span>
         </a>
 
-        {/* Menu Navigasi Desktop */}
-        <nav className="hidden md:flex items-center gap-7 text-xs font-bold text-[#3d5047]">
-          {navLinks.map(({ label, id }) => (
-            <a
-              key={id}
-              href={`#${id}`}
-              onClick={(e) => scrollTo(e, id)}
-              className="hover:text-[#28a870] transition-colors py-1 cursor-pointer"
-            >
-              {label}
-            </a>
-          ))}
-        </nav>
+        {/* Right: Navigation Links & CTA */}
+        <div className="flex items-center gap-2 sm:gap-6">
+          <nav className="hidden md:flex items-center gap-1">
+            {navLinks.map((link) => (
+              <a
+                key={link.id}
+                href={`#${link.id}`}
+                onClick={(e) => scrollTo(e, link.id)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-colors ${
+                  activeNav === link.id
+                    ? scrolled
+                      ? "bg-neutral-950 text-white"
+                      : "bg-white text-neutral-950"
+                    : scrolled
+                    ? "text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100"
+                    : "text-white/80 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                {link.label}
+              </a>
+            ))}
+          </nav>
 
-        {/* Tombol Aksi Kanan */}
-        <div className="flex items-center gap-2.5">
           <a
-            href="#survey"
-            onClick={(e) => scrollTo(e, "survey")}
-            className="hidden sm:inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold text-white bg-[#28a870] hover:bg-[#1f8b5b] rounded-full transition-colors shadow-sm"
+            href="https://wa.me/6281319233748"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 shadow-xs ${
+              scrolled
+                ? "bg-neutral-950 text-white hover:bg-neutral-800"
+                : "bg-white text-neutral-950 hover:bg-neutral-100"
+            }`}
           >
-            <span>Pesan Survey</span>
+            <span>Hubungi Kami</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
           </a>
 
+          {/* Mobile Menu Button */}
           <button
-            type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden w-8 h-8 rounded-full flex items-center justify-center text-[#0f1f1a] bg-[#eaf6f0] hover:bg-[#d8ece1] transition-colors"
-            aria-label="Menu navigasi"
+            className={`md:hidden p-2 rounded-lg transition-colors ${
+              scrolled ? "text-neutral-950 hover:bg-neutral-100" : "text-white hover:bg-white/10"
+            }`}
+            aria-label="Buka menu navigasi"
           >
-            {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
 
-      {/* Menu Seluler Melayang */}
+      {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden max-w-sm mx-auto mt-2 p-5 bg-white rounded-3xl border border-[#d6e5dd] shadow-xl animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="flex flex-col gap-3 text-sm font-bold text-[#0f1f1a]">
-            {navLinks.map(({ label, id }) => (
-              <a
-                key={id}
-                href={`#${id}`}
-                onClick={(e) => scrollTo(e, id)}
-                className="p-2.5 rounded-2xl hover:bg-[#f7faf8] hover:text-[#28a870] transition-colors"
-              >
-                {label}
-              </a>
-            ))}
+        <div className="md:hidden bg-white border-b border-neutral-200 px-4 py-4 space-y-2 shadow-xl">
+          {navLinks.map((link) => (
             <a
-              href="#survey"
-              onClick={(e) => scrollTo(e, "survey")}
-              className="mt-2 text-center py-2.5 rounded-2xl text-xs font-bold text-white bg-[#28a870] hover:bg-[#1f8b5b]"
+              key={link.id}
+              href={`#${link.id}`}
+              onClick={(e) => scrollTo(e, link.id)}
+              className="block px-3 py-2 rounded-lg text-sm font-medium text-neutral-800 hover:bg-neutral-50"
             >
-              Pesan Survey Lokasi Gratis
+              {link.label}
             </a>
-          </div>
+          ))}
+          <a
+            href="https://wa.me/6281319233748"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block text-center mt-3 py-2.5 px-4 rounded-xl bg-neutral-950 text-white text-sm font-semibold"
+          >
+            WhatsApp: 0813-1923-3748
+          </a>
         </div>
       )}
     </header>

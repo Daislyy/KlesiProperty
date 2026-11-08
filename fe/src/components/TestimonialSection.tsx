@@ -1,72 +1,77 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Star, User } from "lucide-react";
-import { Testimonial } from "@/types";
+import { Quote } from "lucide-react";
 
-interface Props {
-  testimonials: Testimonial[];
-}
+export default function TestimonialSection() {
+  const testimonials = [
+    {
+      name: "Muhammad Attar Putra Pratama",
+      role: "Pembeli Rumah Cluster Depok",
+      initials: "MA",
+      content:
+        "Proses verifikasi sertifikat SHM sangat transparan. Dari awal survey lokasi hingga penandatanganan akta di kantor notaris selalu didampingi dengan jelas dan aman.",
+    },
+    {
+      name: "Muhammad Raffi Barzally",
+      role: "Pembeli Rumah Siap Huni Bogor",
+      initials: "MR",
+      content:
+        "Pengecekan riwayat tanah di BPN sangat terbuka dan tidak ada biaya tersembunyi. Tim KlesiProperty menjelaskan seluruh detail spesifikasi bangunan dan perizinan secara profesional.",
+    },
+    {
+      name: "Galih Rakhasiwi",
+      role: "Pembeli Tanah Kavling Jabodetabek",
+      initials: "GR",
+      content:
+        "Jalur komunikasi sangat responsif. Dokumen perizinan lengkap dan legalitas tanah terbukti aman sesuai penjelasan awal. Rekomendasi terpercaya bagi yang mencari aset di kawasan Jabodetabek.",
+    },
+  ];
 
-export default function TestimonialSection({ testimonials }: Props) {
   return (
-    <section id="testimoni" className="py-20 bg-[#eaf6f0] scroll-mt-24">
-      <div className="max-w-6xl mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-xl mb-12"
-        >
-          <h2 className="text-3xl font-bold text-[#0f1f1a] tracking-tight mb-3">
-            Pengalaman Pembeli Nyata
+    <section id="testimoni" className="w-full py-16 sm:py-24 bg-white border-t border-neutral-200/80 scroll-mt-20">
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
+        <div className="max-w-2xl mb-12 sm:mb-16 space-y-2">
+          <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest">
+            Pengalaman Klien
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-neutral-950 leading-[1.15]">
+            Pengalaman Transaksi Nyata &amp; Transparan
           </h2>
-          <p className="text-base text-[#3d5047] leading-relaxed">
-            Kepastian serah terima dan kesesuaian kondisi fisik adalah standar yang kami jaga di setiap transaksi.
+          <p className="text-sm text-neutral-500 font-normal">
+            Kepercayaan pembeli dibangun melalui kepastian legalitas sertifikat dan pendampingan menyeluruh.
           </p>
-        </motion.div>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {testimonials.map((t, i) => (
-            <motion.div
-              key={t.id}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.5, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="bg-white p-8 flex flex-col justify-between"
+        {/* 3 Testimonial Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+          {testimonials.map((item, index) => (
+            <div
+              key={index}
+              className="p-6 sm:p-8 rounded-2xl bg-[#faf9f6] border border-neutral-200 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col justify-between gap-6 group hover:-translate-y-1"
             >
-              <div>
-                {/* Rating Bintang */}
-                <div className="flex items-center gap-1 mb-5">
-                  {[...Array(t.rating || 5)].map((_, starIdx) => (
-                    <Star
-                      key={starIdx}
-                      className="w-4 h-4 fill-[#28a870] text-[#28a870]"
-                    />
-                  ))}
-                </div>
-
-                {/* Konten Testimoni */}
-                <p className="text-sm text-[#0f1f1a] leading-relaxed mb-8">
-                  &ldquo;{t.content}&rdquo;
+              <div className="space-y-4">
+                <Quote className="w-6 h-6 text-neutral-400" />
+                <p className="text-sm text-neutral-700 leading-relaxed font-normal">
+                  &ldquo;{item.content}&rdquo;
                 </p>
               </div>
 
-              {/* Profil Pembeli dengan Avatar Bulat */}
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full bg-[#e2ede7] flex items-center justify-center text-[#28a870] shrink-0">
-                  <User className="w-5 h-5 text-[#28a870]" />
+              {/* Client Info */}
+              <div className="flex items-center gap-3 pt-4 border-t border-neutral-200/80">
+                <div className="w-10 h-10 rounded-full bg-neutral-950 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                  {item.initials}
                 </div>
-                <div>
-                  <p className="text-sm font-bold text-[#0f1f1a]">{t.buyer_name}</p>
-                  <p className="text-xs text-[#28a870] font-semibold">
-                    Pembeli Terverifikasi
+                <div className="min-w-0">
+                  <h4 className="text-sm font-bold text-neutral-950 truncate">
+                    {item.name}
+                  </h4>
+                  <p className="text-xs text-neutral-500 truncate">
+                    {item.role}
                   </p>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

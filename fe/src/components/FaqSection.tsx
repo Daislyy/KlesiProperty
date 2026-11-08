@@ -1,123 +1,88 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Minus } from "lucide-react";
-
-const FAQS = [
-  {
-    q: "Apakah jadwal survey lokasi dikenakan biaya?",
-    a: "Tidak ada biaya sama sekali. Seluruh pendampingan survey ke lokasi unit properti bersama konsultan Klesi Property bersifat gratis dan tanpa komitmen tanda jadi di awal.",
-  },
-  {
-    q: "Bagaimana proses verifikasi legalitas sertifikat di Klesi?",
-    a: "Sebelum listing diterbitkan, tim kami memeriksa keaslian buku tanah SHM ke BPN melalui pengecekan fisik warkah dan aplikasi Sentuh Tanahku untuk memastikan tidak ada sengketa waris atau status agunan perbankan macet.",
-  },
-  {
-    q: "Apakah pembeli bisa mengajukan KPR lewat bank pilihan sendiri?",
-    a: "Bisa. Anda bebas memilih bank manapun. Tim Klesi juga bekerja sama dengan bank rekanan (BTN, Mandiri, BCA, dan BSI) untuk membantu proses pengumpulan berkas hingga penerbitan surat penegasan persetujuan kredit (SP3K).",
-  },
-  {
-    q: "Apakah saya bisa bernegosiasi langsung dengan pemilik unit?",
-    a: "Ya. Kami memfasilitasi pertemuan tatap muka terbuka antara calon pembeli dan pemilik rumah saat proses negosiasi harga akhir agar tercipta transparansi penuh tanpa mark-up sepihak.",
-  },
-  {
-    q: "Berapa lama estimasi waktu dari kesepakatan hingga serah terima kunci?",
-    a: "Untuk pembelian tunai keras berkisar antara 7-14 hari kerja setelah verifikasi notaris PPAT dan penandatanganan AJB. Untuk skema KPR, biasanya memerlukan 3-4 minggu bergantung pada kecepatan verifikasi data perbankan.",
-  },
-  {
-    q: "Bagaimana dengan biaya pajak pembeli (BPHTB) dan jasa notaris?",
-    a: "Biaya BPHTB (5% setelah dikurangi NPOPTKP) dan biaya pembuatan Akta Jual Beli (AJB) dihitung secara transparan di depan bersama notaris PPAT rekanan sebelum transaksi dimulai.",
-  },
-];
+import { ChevronDown } from "lucide-react";
 
 export default function FaqSection() {
-  const [openIdx, setOpenIdx] = useState<number | null>(0);
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
 
-  const toggle = (i: number) => {
-    setOpenIdx(openIdx === i ? null : i);
+  const faqs = [
+    {
+      question: "Bagaimana proses verifikasi legalitas properti di KlesiProperty?",
+      answer:
+        "Setiap unit properti melewati pengecekan keabsahan sertifikat (SHM/SHGB), perizinan bangunan (IMB/PBG), dan status riwayat tanah di kantor BPN terkait guna memastikan tidak ada sengketa atau kendala hukum.",
+    },
+    {
+      question: "Di mana saja cakupan lokasi properti yang dipasarkan?",
+      answer:
+        "Layanan kurasi kami mencakup kawasan Jabodetabek (Jakarta, Bogor, Depok, Tangerang, dan Bekasi) dengan akses transportasi strategis, di mana kantor operasional utama kami berpusat di Cilodong, Kota Depok.",
+    },
+    {
+      question: "Berapa kisaran harga dan tipe properti yang tersedia?",
+      answer:
+        "Pilihan unit mencakup rumah cluster siap huni mulai dari 600 jutaan hingga hunian eksklusif dua lantai di atas 1 miliar, ruko komersial, dan tanah kavling siap bangun.",
+    },
+    {
+      question: "Bagaimana cara menjadwalkan survey lokasi?",
+      answer:
+        "Anda dapat memilih tanggal kunjungan melalui formulir jadwal survey atau langsung mengirim pesan WhatsApp ke nomor 0813-1923-3748. Tim kami siap mendampingi tanpa pungutan biaya.",
+    },
+  ];
+
+  const toggleFaq = (index: number) => {
+    setOpenIndex(openIndex === index ? null : index);
   };
 
   return (
-    <section className="py-20 lg:py-24 border-t border-[#e2ede7]">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
-        {/* Kolom Kiri */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:col-span-4"
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#eaf6f0] text-[#1f8b5b] text-xs font-bold mb-3">
-            Pusat Informasi & Konsultasi
-          </div>
-          <h2 className="text-3xl font-extrabold text-[#0f1f1a] tracking-tight leading-tight mb-4">
-            Pertanyaan seputar transaksi & survey.
-          </h2>
-          <p className="text-xs sm:text-sm text-[#3d5047] leading-relaxed mb-6">
-            Pahami hak Anda sebagai pembeli, tata cara pemeriksaan fisik, dan transparansi proses akad sebelum menjadwalkan kunjungan lapangan.
-          </p>
-
-          <div className="p-5 bg-white border border-[#e2ede7]">
-            <h3 className="text-xs font-bold text-[#0f1f1a] uppercase tracking-wider mb-1">
-              Konsultasi Langsung
-            </h3>
-            <p className="text-xs text-[#6a8075] leading-relaxed mb-3">
-              Ada pertanyaan spesifik mengenai batas patok atau regulasi IMB/PBG di kawasan Bandung Barat & Cimahi?
+    <section id="faq" className="w-full py-16 sm:py-24 bg-[#faf9f6] border-t border-gray-100">
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
+          {/* Left Column */}
+          <div className="lg:col-span-5 space-y-3">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 leading-[1.15]">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600 leading-relaxed font-normal">
+              Pertanyaan umum seputar legalitas sertifikat, lokasi, dan prosedur survey properti bersama kami.
             </p>
-            <a
-              href="#survey"
-              className="inline-flex items-center text-xs font-bold text-[#28a870] hover:text-[#1f8b5b] underline underline-offset-4"
-            >
-              Jadwalkan Konsultasi dengan Tim Lapangan →
-            </a>
           </div>
-        </motion.div>
 
-        {/* Kolom Kanan: Accordion */}
-        <div className="lg:col-span-8 space-y-3">
-          {FAQS.map((faq, i) => {
-            const isOpen = openIdx === i;
-            return (
-              <motion.div
-                key={faq.q}
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.05 }}
-                className="bg-white border border-[#e2ede7] transition-colors hover:border-[#28a870]"
-              >
-                <button
-                  type="button"
-                  onClick={() => toggle(i)}
-                  className="w-full p-5 text-left flex items-center justify-between gap-4 font-bold text-sm text-[#0f1f1a] hover:text-[#28a870] transition-colors"
+          {/* Right Column: Accordion Items */}
+          <div className="lg:col-span-7 space-y-3">
+            {faqs.map((faq, index) => {
+              const isOpen = openIndex === index;
+              return (
+                <div
+                  key={index}
+                  className="rounded-2xl bg-white border border-gray-200/80 overflow-hidden transition-all duration-200 shadow-2xs"
                 >
-                  <span>{faq.q}</span>
-                  <div className="w-6 h-6 bg-[#f7faf8] flex items-center justify-center text-[#28a870] shrink-0">
-                    {isOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                  </div>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleFaq(index)}
+                    className="w-full py-4 sm:py-5 px-5 sm:px-6 flex items-center justify-between gap-4 text-left cursor-pointer"
+                  >
+                    <span className="text-sm sm:text-base font-semibold text-gray-900 leading-snug">
+                      {faq.question}
+                    </span>
+                    <ChevronDown
+                      className={`w-5 h-5 text-gray-400 shrink-0 transition-transform duration-300 ${
+                        isOpen ? "rotate-180 text-neutral-950" : ""
+                      }`}
+                    />
+                  </button>
 
-                <AnimatePresence initial={false}>
                   {isOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                    >
-                      <div className="px-5 pb-5 pt-0 text-xs sm:text-sm text-[#3d5047] leading-relaxed border-t border-[#f7faf8]">
-                        {faq.a}
-                      </div>
-                    </motion.div>
+                    <div className="px-5 sm:px-6 pb-5 pt-0 text-sm text-gray-600 leading-relaxed border-t border-gray-100 mt-1">
+                      <p className="pt-3">{faq.answer}</p>
+                    </div>
                   )}
-                </AnimatePresence>
-              </motion.div>
-            );
-          })}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
   );
 }
+
