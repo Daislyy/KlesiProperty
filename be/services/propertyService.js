@@ -57,10 +57,27 @@ export const getAllProperties = async (filters, pagination) => {
 
   const [properties] = await pool.query(`
     SELECT p.*,
-      (SELECT image_url FROM property_images WHERE property_id = p.id AND is_primary = TRUE LIMIT 1) AS primary_image
+      COALESCE(
+        (SELECT image_url FROM property_images WHERE property_id = p.id AND is_primary = TRUE LIMIT 1),
+        (SELECT image_url FROM property_images WHERE property_id = p.id ORDER BY id ASC LIMIT 1)
+      ) AS primary_image
     FROM properties p ${whereSQL}
     ORDER BY p.created_at DESC LIMIT ? OFFSET ?
   `, [...values, limit, offset]);
+
+  if (properties.length > 0) {
+    const propIds = properties.map(p => p.id);
+    const [allImages] = await pool.query(
+      'SELECT id, property_id, image_url, is_primary FROM property_images WHERE property_id IN (?) ORDER BY is_primary DESC, id ASC',
+      [propIds]
+    );
+    properties.forEach(p => {
+      p.images = allImages.filter(img => img.property_id === p.id);
+      if (!p.primary_image && p.images.length > 0) {
+        p.primary_image = p.images[0].image_url;
+      }
+    });
+  }
 
   return {
     properties,
@@ -72,11 +89,28 @@ export const getAllProperties = async (filters, pagination) => {
 export const getFeaturedProperties = async () => {
   const [rows] = await pool.query(`
     SELECT p.*,
-      (SELECT image_url FROM property_images WHERE property_id = p.id AND is_primary = TRUE LIMIT 1) AS primary_image
+      COALESCE(
+        (SELECT image_url FROM property_images WHERE property_id = p.id AND is_primary = TRUE LIMIT 1),
+        (SELECT image_url FROM property_images WHERE property_id = p.id ORDER BY id ASC LIMIT 1)
+      ) AS primary_image
     FROM properties p
     WHERE p.is_featured = TRUE AND p.status = 'tersedia'
     ORDER BY p.created_at DESC LIMIT 6
   `);
+
+  if (rows.length > 0) {
+    const propIds = rows.map(p => p.id);
+    const [allImages] = await pool.query(
+      'SELECT id, property_id, image_url, is_primary FROM property_images WHERE property_id IN (?) ORDER BY is_primary DESC, id ASC',
+      [propIds]
+    );
+    rows.forEach(p => {
+      p.images = allImages.filter(img => img.property_id === p.id);
+      if (!p.primary_image && p.images.length > 0) {
+        p.primary_image = p.images[0].image_url;
+      }
+    });
+  }
   return rows;
 };
 
