@@ -85,24 +85,26 @@ export default function Footer() {
                 0813-1923-3748
               </a>
             </p>
+            <div className="pt-1.5">
+            </div>
           </div>
         </div>
 
-        {/* Bottom Bar dengan Link Admin Kecil & Diskrit */}
+        {/* Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-400">
           <p>&copy; {new Date().getFullYear()} KlesiProperty. Seluruh hak cipta dilindungi.</p>
-          <div className="flex items-center gap-4 text-[11px]">
+          <div className="flex flex-wrap items-center gap-3 text-[11px]">
             <span>Cakupan Area: Jabodetabek</span>
             <span className="text-neutral-300">&bull;</span>
             <span>Kantor: Cilodong, Depok</span>
             <span className="text-neutral-300">&bull;</span>
             <Link
               href="/admin"
-              className="inline-flex items-center gap-1 text-neutral-400 hover:text-neutral-900 transition-colors py-0.5 px-1.5 rounded hover:bg-neutral-200/50"
-              title="Panel Kelola Admin"
+              className="inline-flex items-center gap-1.5 text-[11px] font-medium text-neutral-700 hover:text-neutral-950 bg-white hover:bg-neutral-100 border border-neutral-200/90 px-2.5 py-1 rounded-md shadow-2xs transition-all active:scale-95 cursor-pointer"
+              title="Masuk ke Panel Admin"
             >
-              <Lock className="w-3 h-3" />
-              <span>Admin</span>
+              <Lock className="w-3 h-3 text-neutral-500" />
+              <span>Login Admin</span>
             </Link>
           </div>
         </div>

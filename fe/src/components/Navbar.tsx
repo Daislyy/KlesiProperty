@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Menu, X, ArrowUpRight } from "lucide-react";
 
 export default function Navbar() {
@@ -47,28 +48,22 @@ export default function Navbar() {
       }`}
     >
       <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-        {/* Left: Location Badge */}
-        <div className="flex items-center gap-3">
-          <a
-            href="#katalog"
-            onClick={(e) => scrollTo(e, "katalog")}
-            className={`hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium tracking-wide transition-colors ${
-              scrolled
-                ? "bg-neutral-100 text-neutral-800 hover:bg-neutral-200"
-                : "bg-white/15 text-white backdrop-blur-md border border-white/20 hover:bg-white/25"
-            }`}
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
-            Jabodetabek
-          </a>
-        </div>
 
-        {/* Center: Brand Monogram / Logo */}
+        {/* Loggo*/}
         <a
           href="#"
           onClick={(e) => scrollTo(e, "beranda")}
-          className="flex items-center gap-2 group"
+          className="flex items-center gap-2.5 group"
         >
+          <div className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0">
+            <Image
+              src="/logo.png"
+              alt="KlesiProperty Logo"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
           <span
             className={`font-extrabold text-xl sm:text-2xl tracking-tight uppercase transition-colors ${
               scrolled ? "text-neutral-950" : "text-white"
