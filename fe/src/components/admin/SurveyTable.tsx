@@ -1,8 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { MessageCircle, Calendar, Clock, Phone, User, CheckCircle2 } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  Phone,
+  MessageSquare,
+  Search,
+  MapPin,
+  FileSpreadsheet,
+} from "lucide-react";
 import { Survey } from "@/types";
 import { API_BASE } from "@/lib/api";
 
@@ -13,18 +20,55 @@ interface Props {
 }
 
 export default function SurveyTable({ surveys, token, onRefresh }: Props) {
-  const [filterStatus, setFilterStatus] = useState<string>("semua");
+  const [filterStatus, setFilterStatus] = useState("semua");
+  const [search, setSearch] = useState("");
   const [updatingId, setUpdatingId] = useState<number | null>(null);
 
+  const normalizeStatus = (st: string) => {
+    if (st === "dihubungi") return "dikonfirmasi";
+    if (st === "batal") return "dibatalkan";
+    return st;
+  };
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "-";
+    try {
+      const clean = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
+      const [year, month, day] = clean.split("-");
+      if (year && month && day) {
+        return `${day}/${month}/${year}`;
+      }
+      return clean;
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const formatTime = (timeStr: string) => {
+    if (!timeStr) return "";
+    const parts = timeStr.split(":");
+    if (parts.length >= 2) {
+      return `${parts[0]}:${parts[1]} WIB`;
+    }
+    return `${timeStr} WIB`;
+  };
+
   const filtered = surveys.filter((s) => {
-    if (filterStatus === "semua") return true;
-    return s.status === filterStatus;
+    const sNorm = normalizeStatus(s.status);
+    const fNorm = normalizeStatus(filterStatus);
+    const matchStatus = filterStatus === "semua" || sNorm === fNorm;
+    const matchSearch =
+      !search ||
+      s.name.toLowerCase().includes(search.toLowerCase()) ||
+      s.phone.includes(search) ||
+      (s.property_title && s.property_title.toLowerCase().includes(search.toLowerCase()));
+    return matchStatus && matchSearch;
   });
 
-  const handleStatusChange = async (id: number, newStatus: string) => {
-    setUpdatingId(id);
+  const handleStatusChange = async (surveyId: number, newStatus: string) => {
+    setUpdatingId(surveyId);
     try {
-      const res = await fetch(`${API_BASE}/api/admin/surveys/${id}/status`, {
+      const res = await fetch(`${API_BASE}/api/admin/surveys/${surveyId}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -32,7 +76,6 @@ export default function SurveyTable({ surveys, token, onRefresh }: Props) {
         },
         body: JSON.stringify({ status: newStatus }),
       });
-
       if (res.ok) {
         onRefresh();
       }
@@ -43,161 +86,236 @@ export default function SurveyTable({ surveys, token, onRefresh }: Props) {
     }
   };
 
-  const cleanPhoneForWa = (phone: string) => {
-    let cleaned = phone.replace(/[^0-9]/g, "");
-    if (cleaned.startsWith("0")) {
-      cleaned = "62" + cleaned.slice(1);
-    }
-    return cleaned;
+  const formatWhatsAppUrl = (item: Survey) => {
+    let clean = item.phone.replace(/[^0-9]/g, "");
+    if (clean.startsWith("0")) clean = "62" + clean.slice(1);
+
+    const message = [
+      `*KONFIRMASI JADWAL SURVEY - KLESI PROPERTY*`,
+      `Halo Bapak/Ibu *${item.name}*,`,
+      ``,
+      `Terima kasih telah mengajukan jadwal survey melalui website KlesiProperty. Berikut rincian jadwal survey Anda:`,
+      ``,
+      `*Detail Pengajuan:*`,
+      `• *Unit:* ${item.property_title || "Unit Properti"} ${item.property_location ? `(${item.property_location})` : ""}`,
+      `• *Tanggal:* ${formatDate(item.survey_date)}`,
+      `• *Waktu:* ${formatTime(item.survey_time)}`,
+      item.message ? `• *Catatan:* "${item.message}"` : null,
+      ``,
+      `*Titik Temu:*`,
+      `Tim advisor kami siap mendampingi langsung ke lokasi atau bertemu di kantor operasional KlesiProperty (Cilodong, Kota Depok).`,
+      ``,
+      `Apakah jadwal di atas sudah sesuai untuk Bapak/Ibu? Mohon konfirmasinya ya. Terima kasih!`,
+      ``,
+      `_Salam hangat,_`,
+      `*Tim KlesiProperty Jabodetabek*`
+    ]
+      .filter((line) => line !== null)
+      .join("\n");
+
+    return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
   };
 
-  const countByStatus = (status: string) => {
-    if (status === "semua") return surveys.length;
-    return surveys.filter((s) => s.status === status).length;
+  const handleExportExcel = () => {
+    if (filtered.length === 0) return;
+
+    const headers = [
+      "No",
+      "ID Survey",
+      "Nama Pemohon",
+      "No WhatsApp",
+      "Target Properti",
+      "Lokasi Properti",
+      "Tanggal Survey",
+      "Waktu Survey",
+      "Status",
+      "Catatan Pemohon",
+    ];
+
+    const rows = filtered.map((s, idx) => [
+      idx + 1,
+      s.id,
+      `"${(s.name || "").replace(/"/g, '""')}"`,
+      `"'${s.phone || ""}"`,
+      `"${(s.property_title || "").replace(/"/g, '""')}"`,
+      `"${(s.property_location || "").replace(/"/g, '""')}"`,
+      formatDate(s.survey_date),
+      formatTime(s.survey_time),
+      normalizeStatus(s.status).toUpperCase(),
+      `"${(s.message || "").replace(/"/g, '""').replace(/\r?\n/g, " ")}"`,
+    ]);
+
+    const csvContent =
+      "\uFEFF" +
+      [headers.join(","), ...rows.map((r) => r.join(","))].join("\r\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const dateStr = new Date().toISOString().split("T")[0];
+    link.href = url;
+    link.setAttribute("download", `Data_Jadwal_Survey_KlesiProperty_${dateStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
     <div className="space-y-6">
-      {/* Status Filter dengan Badge Angka */}
-      <div className="flex flex-wrap items-center gap-2">
-        {["semua", "baru", "dikonfirmasi", "selesai", "dibatalkan"].map((st) => {
-          const count = countByStatus(st);
-          return (
-            <button
-              key={st}
-              onClick={() => setFilterStatus(st)}
-              className={`px-3 py-1.5 text-xs font-semibold capitalize transition-colors flex items-center gap-1.5 ${
-                filterStatus === st
-                  ? "bg-[#28a870] text-white"
-                  : "bg-white text-[#3d5047] hover:text-[#0f1f1a]"
-              }`}
-            >
-              <span>{st}</span>
-              <span
-                className={`text-[10px] px-1.5 py-0.2 font-bold ${
-                  filterStatus === st
-                    ? "bg-[#0f1f1a] text-[#3ecf8e]"
-                    : "bg-[#f7faf8] text-[#6a8075]"
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Cari nama, no WhatsApp, properti..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8.5 pr-3 py-2 bg-neutral-50 border border-neutral-200 text-xs rounded-lg text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-900 focus:bg-white transition-all w-64 sm:w-80"
+            />
+          </div>
+
+          <div className="flex items-center gap-1 bg-neutral-100 p-1 rounded-lg">
+            {[
+              { label: "Semua", val: "semua" },
+              { label: "Baru", val: "baru" },
+              { label: "Dikonfirmasi", val: "dikonfirmasi" },
+              { label: "Selesai", val: "selesai" },
+              { label: "Dibatalkan", val: "dibatalkan" },
+            ].map(({ label, val }) => (
+              <button
+                key={val}
+                type="button"
+                onClick={() => setFilterStatus(val)}
+                className={`px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer ${
+                  normalizeStatus(filterStatus) === normalizeStatus(val)
+                    ? "bg-white text-neutral-950 shadow-xs"
+                    : "text-neutral-600 hover:text-neutral-950"
                 }`}
               >
-                {count}
-              </span>
-            </button>
-          );
-        })}
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleExportExcel}
+          disabled={filtered.length === 0}
+          className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/90 rounded-lg transition-all active:scale-97 cursor-pointer disabled:opacity-40 disabled:pointer-events-none shadow-2xs"
+          title="Unduh data survey ke file spreadsheet (.csv/Excel)"
+        >
+          <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-700" />
+          <span>Export Excel</span>
+        </button>
       </div>
 
-      {/* Table Container */}
-      <div data-ui="survey-table" className="bg-white overflow-x-auto">
-        <table className="w-full text-left text-xs">
-          <thead>
-            <tr className="bg-[#f7faf8] text-[#3d5047] font-bold">
-              <th className="py-3 px-4">Calon Pembeli</th>
-              <th className="py-3 px-4">Unit Diminati</th>
-              <th className="py-3 px-4">Jadwal Survey</th>
-              <th className="py-3 px-4">Catatan Kunjungan</th>
-              <th className="py-3 px-4">Status Pengajuan</th>
-              <th className="py-3 px-4 text-right">Tindakan WA</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="py-12 text-center text-[#6a8075]">
-                  Tidak ada pengajuan survey dalam kategori ini.
-                </td>
-              </tr>
-            ) : (
-              filtered.map((s, idx) => {
-                const waUrl = `https://wa.me/${cleanPhoneForWa(s.phone)}?text=${encodeURIComponent(
-                  `Halo Bapak/Ibu ${s.name}, kami dari tim Klesi Property ingin mengonfirmasi jadwal survey untuk properti "${s.property_title || "Pilihan Anda"}" pada tanggal ${s.survey_date} pukul ${s.survey_time} WIB.`
-                )}`;
+      {filtered.length === 0 ? (
+        <div className="p-12 text-center bg-neutral-50/50 rounded-xl border border-dashed border-neutral-200 text-neutral-500">
+          <p className="text-xs font-semibold text-neutral-800">Tidak ada permohonan survey yang cocok.</p>
+          <p className="text-[11px] text-neutral-400 mt-1">Permohonan survey dari formulir landing page akan masuk otomatis di sini.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filtered.map((item) => {
+            const currentStatus = normalizeStatus(item.status);
 
-                return (
-                  <motion.tr
-                    key={s.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: idx * 0.03 }}
-                    className="hover:bg-[#f7faf8]/70 transition-colors"
+            return (
+              <div
+                key={item.id}
+                className="group bg-white rounded-xl border border-neutral-200/80 p-4 shadow-xs hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <div>
+                      <span className="text-[10px] uppercase tracking-wider font-semibold text-neutral-400 block">
+                        Permohonan #{item.id}
+                      </span>
+                      <h4 className="text-sm font-bold text-neutral-950 line-clamp-1 mt-0.5">
+                        {item.name}
+                      </h4>
+                    </div>
+
+                    <span
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded capitalize shrink-0 ${
+                        currentStatus === "baru"
+                          ? "bg-amber-100 text-amber-900 border border-amber-200"
+                          : currentStatus === "dikonfirmasi"
+                          ? "bg-blue-50 text-blue-700 border border-blue-200"
+                          : currentStatus === "selesai"
+                          ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                          : "bg-neutral-100 text-neutral-600 border border-neutral-200"
+                      }`}
+                    >
+                      {currentStatus}
+                    </span>
+                  </div>
+
+                  <div className="p-2.5 bg-neutral-50 rounded-lg mb-3 text-xs">
+                    <p className="text-[10px] uppercase font-semibold text-neutral-400">Target Properti:</p>
+                    <p className="font-semibold text-neutral-900 line-clamp-1 mt-0.5">
+                      {item.property_title || `Properti ID #${item.property_id}`}
+                    </p>
+                    {item.property_location && (
+                      <p className="text-neutral-500 text-[11px] flex items-center gap-1 mt-0.5">
+                        <MapPin className="w-3 h-3 text-neutral-400" />
+                        <span className="truncate">{item.property_location}</span>
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs text-neutral-600 mb-3 p-2 bg-neutral-50/50 rounded-lg">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-neutral-400" />
+                      <span>{formatDate(item.survey_date)}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-neutral-400" />
+                      <span>{formatTime(item.survey_time)}</span>
+                    </div>
+                  </div>
+
+                  {item.message && (
+                    <div className="p-2.5 bg-neutral-50 rounded-lg text-[11px] text-neutral-600 mb-4 flex items-start gap-1.5 border-l-2 border-neutral-300">
+                      <MessageSquare className="w-3.5 h-3.5 text-neutral-400 shrink-0 mt-0.5" />
+                      <p className="italic leading-normal">&ldquo;{item.message}&rdquo;</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-3 border-t border-neutral-100 flex items-center justify-between gap-3">
+                  <a
+                    href={formatWhatsAppUrl(item)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-lg flex items-center gap-1.5 transition-colors shadow-xs active:scale-98"
                   >
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-[#eaf6f0] flex items-center justify-center text-[#28a870] font-bold text-xs shrink-0">
-                          <User className="w-3.5 h-3.5" />
-                        </div>
-                        <div>
-                          <p className="font-bold text-[#0f1f1a]">{s.name}</p>
-                          <p className="text-[11px] text-[#6a8075] flex items-center gap-1">
-                            <Phone className="w-3 h-3 text-[#28a870]" />
-                            {s.phone}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
+                    <Phone className="w-3 h-3" />
+                    <span>WhatsApp</span>
+                  </a>
 
-                    <td className="py-3.5 px-4 font-semibold text-[#0f1f1a]">
-                      <p>{s.property_title || `Unit #${s.property_id}`}</p>
-                      {s.property_location && (
-                        <p className="text-[11px] text-[#6a8075] font-normal">{s.property_location}</p>
-                      )}
-                    </td>
-
-                    <td className="py-3.5 px-4 text-[#3d5047]">
-                      <div className="flex items-center gap-1.5 font-medium">
-                        <Calendar className="w-3 h-3 text-[#28a870]" />
-                        <span>{s.survey_date}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[11px] text-[#6a8075] mt-0.5">
-                        <Clock className="w-3 h-3 text-[#28a870]" />
-                        <span>{s.survey_time} WIB</span>
-                      </div>
-                    </td>
-
-                    <td className="py-3.5 px-4 text-[#3d5047] max-w-xs truncate">
-                      {s.message || "-"}
-                    </td>
-
-                    <td className="py-3.5 px-4">
-                      <select
-                        value={s.status}
-                        disabled={updatingId === s.id}
-                        onChange={(e) => handleStatusChange(s.id, e.target.value)}
-                        className={`text-xs font-bold px-2 py-1 focus:outline-none cursor-pointer ${
-                          s.status === "baru"
-                            ? "bg-amber-50 text-amber-800"
-                            : s.status === "dikonfirmasi"
-                            ? "bg-blue-50 text-blue-800"
-                            : s.status === "selesai"
-                            ? "bg-[#eaf6f0] text-[#1f8b5b]"
-                            : "bg-gray-100 text-gray-700"
-                        }`}
-                      >
-                        <option value="baru">Baru</option>
-                        <option value="dikonfirmasi">Dikonfirmasi</option>
-                        <option value="selesai">Selesai</option>
-                        <option value="dibatalkan">Dibatalkan</option>
-                      </select>
-                    </td>
-
-                    <td className="py-3.5 px-4 text-right">
-                      <a
-                        href={waUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-[#28a870] hover:bg-[#1f8b5b] transition-colors"
-                      >
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        Chat WA
-                      </a>
-                    </td>
-                  </motion.tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <span className="text-[11px] text-neutral-400">Status:</span>
+                    <select
+                      value={currentStatus}
+                      disabled={updatingId === item.id}
+                      onChange={(e) => handleStatusChange(item.id, e.target.value)}
+                      className="py-1 px-2 bg-neutral-50 border border-neutral-200 rounded-md text-xs font-medium text-neutral-800 focus:outline-none focus:border-neutral-900 cursor-pointer disabled:opacity-50"
+                    >
+                      <option value="baru">Baru</option>
+                      <option value="dikonfirmasi">Dikonfirmasi</option>
+                      <option value="selesai">Selesai</option>
+                      <option value="dibatalkan">Dibatalkan</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

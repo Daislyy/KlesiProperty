@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
   Edit3,
@@ -10,16 +9,15 @@ import {
   Trash2,
   Search,
   MapPin,
-  Home,
-  Store,
-  Layers,
-  Sparkles,
   Bed,
   Bath,
   Maximize2,
+  ShieldCheck,
+  Star,
 } from "lucide-react";
 import { Property } from "@/types";
 import { formatRupiah, resolveImageUrl, API_BASE } from "@/lib/api";
+import DeleteConfirmModal from "./DeleteConfirmModal";
 
 interface Props {
   properties: Property[];
@@ -40,231 +38,255 @@ export default function PropertyTable({
 }: Props) {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("semua");
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const filtered = properties.filter((p) => {
     const matchType = typeFilter === "semua" || p.type.toLowerCase() === typeFilter;
     const matchSearch =
       !search ||
       p.title.toLowerCase().includes(search.toLowerCase()) ||
-      p.location.toLowerCase().includes(search.toLowerCase());
+      p.location.toLowerCase().includes(search.toLowerCase()) ||
+      p.address?.toLowerCase().includes(search.toLowerCase());
     return matchType && matchSearch;
   });
 
-  const handleDelete = async (property: Property) => {
-    if (!confirm(`Hapus properti "${property.title}"? Semua foto terkait juga akan dihapus.`)) {
-      return;
-    }
-
-    setDeletingId(property.id);
+  const confirmDelete = async () => {
+    if (!propertyToDelete) return;
+    setIsDeleting(true);
     try {
-      const res = await fetch(`${API_BASE}/api/admin/properties/${property.id}`, {
+      const res = await fetch(`${API_BASE}/api/admin/properties/${propertyToDelete.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (res.ok) {
-        onRefresh();
-      } else {
-        alert("Gagal menghapus properti.");
-      }
+      if (res.ok) onRefresh();
     } catch {
-      alert("Gagal menghubungi server.");
+      onRefresh();
     } finally {
-      setDeletingId(null);
+      setIsDeleting(false);
+      setPropertyToDelete(null);
     }
   };
 
-  const getTypeIcon = (type: string) => {
-    switch (type.toLowerCase()) {
-      case "rumah":
-        return <Home className="w-3.5 h-3.5 text-[#28a870]" />;
-      case "ruko":
-        return <Store className="w-3.5 h-3.5 text-[#28a870]" />;
-      default:
-        return <Layers className="w-3.5 h-3.5 text-[#28a870]" />;
+  const handleToggleFeatured = async (p: Property) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/properties/${p.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ is_featured: !p.is_featured }),
+      });
+      if (res.ok) onRefresh();
+    } catch {
+      onRefresh();
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* Top Filter & Add Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <div className="relative">
-            <Search className="w-4 h-4 text-[#6a8075] absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Cari judul atau lokasi..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 pr-4 py-2 bg-white border border-[#cce3d7] text-xs text-[#0f1f1a] focus:outline-none focus:border-[#28a870] w-64"
+              className="pl-8.5 pr-3 py-2 bg-neutral-50 border border-neutral-200 text-xs rounded-lg text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-900 focus:bg-white transition-all w-60 sm:w-72"
             />
           </div>
 
-          <div className="flex items-center gap-1 bg-white p-1">
-            {["semua", "rumah", "ruko", "tanah"].map((t) => (
+          <div className="flex items-center gap-1 bg-neutral-100 p-1 rounded-lg">
+            {[
+              { id: "semua", label: "Semua" },
+              { id: "rumah", label: "Rumah" },
+              { id: "tanah", label: "Tanah" },
+              { id: "ruko", label: "Komersial" },
+            ].map((cat) => (
               <button
-                key={t}
-                onClick={() => setTypeFilter(t)}
-                className={`px-3 py-1 text-xs font-semibold capitalize transition-colors ${
-                  typeFilter === t
-                    ? "bg-[#28a870] text-white"
-                    : "text-[#3d5047] hover:text-[#0f1f1a]"
+                key={cat.id}
+                type="button"
+                onClick={() => setTypeFilter(cat.id)}
+                className={`px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer ${
+                  typeFilter === cat.id
+                    ? "bg-white text-neutral-950 shadow-xs"
+                    : "text-neutral-600 hover:text-neutral-950"
                 }`}
               >
-                {t}
+                {cat.label}
               </button>
             ))}
           </div>
-
-          <span className="text-xs text-[#6a8075]">
-            Menampilkan {filtered.length} dari {properties.length} unit
-          </span>
         </div>
 
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+        <button
+          type="button"
           onClick={onAdd}
-          className="px-4 py-2 text-xs font-bold text-white bg-[#28a870] hover:bg-[#1f8b5b] transition-colors flex items-center justify-center gap-1.5 self-start sm:self-auto"
+          className="px-3.5 py-2 text-xs font-medium text-white bg-neutral-950 hover:bg-neutral-800 rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-98"
         >
-          <Plus className="w-4 h-4" />
-          Tambah Properti Baru
-        </motion.button>
+          <Plus className="w-3.5 h-3.5" />
+          <span>Tambah Unit</span>
+        </button>
       </div>
 
-      {/* Table Container */}
-      <div data-ui="property-table" className="bg-white overflow-x-auto">
-        <table className="w-full text-left text-xs">
-          <thead>
-            <tr className="bg-[#f7faf8] text-[#3d5047] font-bold">
-              <th className="py-3 px-4">Foto</th>
-              <th className="py-3 px-4">Judul & Lokasi</th>
-              <th className="py-3 px-4">Tipe</th>
-              <th className="py-3 px-4">Harga Jual</th>
-              <th className="py-3 px-4">Spesifikasi Fisik</th>
-              <th className="py-3 px-4">Status</th>
-              <th className="py-3 px-4 text-right">Tindakan</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="py-12 text-center text-[#6a8075]">
-                  Tidak ada properti yang cocok dengan pencarian.
-                </td>
-              </tr>
-            ) : (
-              filtered.map((p, idx) => (
-                <motion.tr
-                  key={p.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: idx * 0.03 }}
-                  className="hover:bg-[#f7faf8]/70 transition-colors"
-                >
-                  <td className="py-3 px-4">
-                    <div className="relative w-16 h-12 bg-[#e2ede7] overflow-hidden">
-                      <Image
-                        src={resolveImageUrl(p.primary_image)}
-                        alt={p.title}
-                        fill
-                        className="object-cover"
-                      />
-                      {p.is_featured && (
-                        <span className="absolute bottom-0 inset-x-0 bg-[#0f1f1a] text-[#3ecf8e] text-[8px] font-extrabold text-center py-0.5">
-                          UNGGULAN
+      {filtered.length === 0 ? (
+        <div className="p-12 text-center bg-neutral-50/50 rounded-xl border border-dashed border-neutral-200 text-neutral-500">
+          <p className="text-xs font-semibold text-neutral-800">Tidak ada unit properti yang cocok.</p>
+          <p className="text-[11px] text-neutral-400 mt-1">Coba sesuaikan kata kunci pencarian atau tambah unit baru.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filtered.map((item) => {
+            const photoCount = item.images ? item.images.length : item.primary_image ? 1 : 0;
+
+            return (
+              <div
+                key={item.id}
+                className="group bg-white rounded-xl border border-neutral-200/80 overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="relative h-44 w-full bg-neutral-100 overflow-hidden">
+                    <Image
+                      src={resolveImageUrl(item.primary_image)}
+                      alt={item.title}
+                      fill
+                      className="object-cover group-hover:scale-103 transition-transform duration-500"
+                      sizes="(max-width: 768px) 100vw, 400px"
+                    />
+
+                    <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5">
+                      <span className="bg-neutral-950/85 backdrop-blur-xs text-white text-[10px] font-semibold px-2 py-0.5 rounded capitalize">
+                        {item.type}
+                      </span>
+                      {item.is_featured && (
+                        <span className="bg-amber-400 text-neutral-950 text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow-xs">
+                          <Star className="w-3 h-3 fill-neutral-950" />
+                          Hero
                         </span>
                       )}
-                    </div>
-                  </td>
-
-                  <td className="py-3 px-4">
-                    <p className="font-bold text-[#0f1f1a] flex items-center gap-1.5">
-                      {p.title}
-                      {p.is_featured && <Sparkles className="w-3 h-3 text-[#28a870]" />}
-                    </p>
-                    <p className="text-[11px] text-[#6a8075] flex items-center gap-1 mt-0.5">
-                      <MapPin className="w-3 h-3 text-[#28a870]" />
-                      {p.location}
-                    </p>
-                  </td>
-
-                  <td className="py-3 px-4">
-                    <span className="inline-flex items-center gap-1.5 font-semibold text-[#0f1f1a] capitalize">
-                      {getTypeIcon(p.type)}
-                      {p.type}
-                    </span>
-                  </td>
-
-                  <td className="py-3 px-4 font-bold text-[#28a870]">
-                    {formatRupiah(p.price)}
-                  </td>
-
-                  <td className="py-3 px-4 text-[#3d5047]">
-                    <div className="flex items-center gap-3">
-                      <span className="flex items-center gap-1">
-                        <Bed className="w-3 h-3 text-[#6a8075]" /> {p.bedrooms}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Bath className="w-3 h-3 text-[#6a8075]" /> {p.bathrooms}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Maximize2 className="w-3 h-3 text-[#6a8075]" /> {p.land_area || p.building_area || "-"} m²
+                      <span className="bg-white/90 text-neutral-900 text-[10px] font-semibold px-2 py-0.5 rounded flex items-center gap-1 backdrop-blur-xs">
+                        <ShieldCheck className="w-3 h-3 text-neutral-800" />
+                        SHM
                       </span>
                     </div>
-                  </td>
 
-                  <td className="py-3 px-4">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-1 font-bold text-[10px] capitalize ${
-                        p.status === "tersedia"
-                          ? "bg-[#eaf6f0] text-[#1f8b5b]"
-                          : "bg-gray-100 text-gray-700"
+                    <div className="absolute top-2.5 right-2.5 flex gap-1">
+                      <span className="bg-neutral-950/70 backdrop-blur-xs text-white text-[10px] font-medium px-2 py-0.5 rounded">
+                        {photoCount}/3 Foto
+                      </span>
+                      <span className="bg-white/90 backdrop-blur-xs text-neutral-900 text-[10px] font-semibold px-2 py-0.5 rounded capitalize">
+                        {item.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-4">
+                    <p className="text-lg font-extrabold tracking-tight text-neutral-950 mb-1">
+                      {formatRupiah(item.price)}
+                    </p>
+
+                    <h3 className="text-sm font-semibold text-neutral-900 line-clamp-1">
+                      {item.title}
+                    </h3>
+
+                    <p className="text-[11px] text-neutral-500 flex items-center gap-1 mt-1 mb-3">
+                      <MapPin className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                      <span className="truncate">{item.location}</span>
+                    </p>
+
+                    <div className="grid grid-cols-3 gap-2 p-2 bg-neutral-50 rounded-lg text-[11px] text-neutral-600">
+                      {item.type === "tanah" ? (
+                        <div className="col-span-3 flex items-center gap-1.5">
+                          <Maximize2 className="w-3.5 h-3.5 text-neutral-400" />
+                          <span>LT: {item.land_area} m²</span>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-1">
+                            <Bed className="w-3 h-3 text-neutral-400" />
+                            <span>{item.bedrooms} KT</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Bath className="w-3 h-3 text-neutral-400" />
+                            <span>{item.bathrooms} KM</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Maximize2 className="w-3.5 h-3.5 text-neutral-400" />
+                            <span>{item.land_area || "-"}/{item.building_area || "-"}</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 pt-0 flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleFeatured(item)}
+                    className={`p-2 rounded-lg text-xs transition-colors cursor-pointer ${
+                      item.is_featured
+                        ? "bg-amber-100 text-amber-900 hover:bg-amber-200"
+                        : "bg-neutral-100 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-200"
+                    }`}
+                    title={
+                      item.is_featured
+                        ? "Properti Hero Beranda (Aktif) - Klik untuk matikan"
+                        : "Jadikan Properti Unggulan di Hero Section"
+                    }
+                  >
+                    <Star
+                      className={`w-3.5 h-3.5 ${
+                        item.is_featured ? "fill-amber-500 text-amber-500" : ""
                       }`}
-                    >
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          p.status === "tersedia" ? "bg-[#28a870]" : "bg-gray-400"
-                        }`}
-                      />
-                      {p.status}
-                    </span>
-                  </td>
+                    />
+                  </button>
 
-                  <td className="py-3 px-4 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => onManageImages(p)}
-                        className="p-1.5 text-[#3d5047] hover:text-[#28a870] hover:bg-[#eaf6f0] transition-colors"
-                        title="Kelola Foto Galeri"
-                      >
-                        <ImagePlus className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => onEdit(p)}
-                        className="p-1.5 text-[#3d5047] hover:text-[#0f1f1a] hover:bg-[#f7faf8] transition-colors"
-                        title="Edit Data Unit"
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(p)}
-                        disabled={deletingId === p.id}
-                        className="p-1.5 text-[#3d5047] hover:text-red-600 hover:bg-red-50 transition-colors"
-                        title="Hapus Properti"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </motion.tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+                  <button
+                    type="button"
+                    onClick={() => onManageImages(item)}
+                    className="flex-1 py-1.5 px-2.5 text-xs font-medium text-neutral-800 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <ImagePlus className="w-3.5 h-3.5 text-neutral-600" />
+                    <span>Foto ({photoCount})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => onEdit(item)}
+                    className="p-2 text-xs font-medium text-neutral-700 hover:text-neutral-950 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-colors cursor-pointer"
+                    title="Edit properti"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPropertyToDelete(item)}
+                    className="p-2 text-xs font-medium text-neutral-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                    title="Hapus properti"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <DeleteConfirmModal
+        isOpen={!!propertyToDelete}
+        title="Hapus Properti"
+        itemName={propertyToDelete?.title}
+        description="Listing beserta seluruh data spesifikasi dan foto unit akan dihapus permanen dari sistem."
+        loading={isDeleting}
+        onConfirm={confirmDelete}
+        onClose={() => setPropertyToDelete(null)}
+      />
     </div>
   );
 }

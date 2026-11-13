@@ -47,7 +47,11 @@ export const updateSurveyStatus = async (id, status) => {
     throw err;
   }
 
-  await pool.query('UPDATE survey_requests SET status = ? WHERE id = ?', [status, id]);
+  let normalizedStatus = status;
+  if (status === 'dihubungi') normalizedStatus = 'dikonfirmasi';
+  if (status === 'batal') normalizedStatus = 'dibatalkan';
+
+  await pool.query('UPDATE survey_requests SET status = ? WHERE id = ?', [normalizedStatus, id]);
 
   const [rows] = await pool.query(`
     SELECT s.*, p.title AS property_title

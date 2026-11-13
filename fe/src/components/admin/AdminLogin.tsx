@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { LogIn, Lock, Mail, AlertCircle } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { Lock, Mail, AlertCircle, Eye, EyeOff, ShieldCheck, ArrowRight, ArrowLeft } from "lucide-react";
 import { API_BASE } from "@/lib/api";
 import { AdminUser } from "@/types";
 
@@ -13,6 +14,7 @@ interface Props {
 export default function AdminLogin({ onLoginSuccess }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -34,11 +36,11 @@ export default function AdminLogin({ onLoginSuccess }: Props) {
         localStorage.setItem("admin_user", JSON.stringify(data.data.user));
         onLoginSuccess(data.data.token, data.data.user);
       } else {
-        setErrorMsg(data.message || "Email atau password salah.");
+        setErrorMsg(data.message || "Email atau kata sandi tidak sesuai.");
       }
     } catch {
-      // Fallback simulasi jika backend offline
-      const mockUser = { id: 1, name: "Admin Klesi", email };
+      // Fallback simulasi jika backend offline saat testing
+      const mockUser = { id: 1, name: "Admin Klesi", email: email || "admin@klesiproperty.id" };
       localStorage.setItem("admin_token", "demo_token_klesi");
       localStorage.setItem("admin_user", JSON.stringify(mockUser));
       onLoginSuccess("demo_token_klesi", mockUser);
@@ -48,84 +50,142 @@ export default function AdminLogin({ onLoginSuccess }: Props) {
   };
 
   return (
-    <div className="min-h-[100dvh] flex items-center justify-center p-6 bg-[#f7faf8]">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-md bg-white p-8 sm:p-10"
-      >
-        <div className="mb-8">
-          <span className="text-2xl font-extrabold tracking-tight text-[#0f1f1a]">
-            Klesi<span className="text-[#28a870]">Property</span>
-          </span>
-          <h1 className="text-xl font-bold text-[#0f1f1a] mt-3">
-            Masuk ke Panel Pengelola
-          </h1>
-          <p className="text-sm text-[#3d5047] mt-1">
-            Gunakan akun administrator untuk mengelola properti dan jadwal survey.
-          </p>
+    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-[#faf9f6]">
+      <div className="relative w-full lg:w-[48%] xl:w-[45%] bg-gradient-to-b from-[#111317] via-[#1a1d24] to-[#111317] min-h-[260px] lg:min-h-screen flex items-center justify-center p-8 sm:p-14 overflow-hidden border-b lg:border-b-0 lg:border-r border-neutral-800">
+        {/* Subtle Architectural Ambient Background Image */}
+        <div className="absolute inset-0 opacity-20 pointer-events-none mix-blend-luminosity">
+          <Image
+            src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=85"
+            alt="KlesiProperty Atmosphere"
+            fill
+            priority
+            className="object-cover object-center"
+          />
         </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#111317] via-transparent to-[#111317]/80 pointer-events-none" />
 
-        {errorMsg && (
-          <div className="mb-6 p-4 bg-red-50 text-sm text-red-800 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
-            <span>{errorMsg}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-semibold text-[#0f1f1a] mb-1.5 flex items-center gap-1.5">
-              <Mail className="w-4 h-4 text-[#28a870]" />
-              Email Admin
-            </label>
-            <input
-              type="email"
-              required
-              placeholder="admin@klesiproperty.id"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 bg-[#f7faf8] border border-[#cce3d7] text-sm text-[#0f1f1a] focus:outline-none focus:border-[#28a870]"
+        <div className="relative z-10 flex flex-col items-center text-center space-y-4 max-w-md">
+  
+          <div className="relative w-24 h-24 sm:w-32 sm:h-32 lg:w-36 lg:h-36 shrink-0">
+            <Image
+              src="/logoputih.png"
+              alt="KlesiProperty Logo"
+              fill
+              className="object-contain"
+              priority
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-[#0f1f1a] mb-1.5 flex items-center gap-1.5">
-              <Lock className="w-4 h-4 text-[#28a870]" />
-              Kata Sandi
-            </label>
-            <input
-              type="password"
-              required
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 bg-[#f7faf8] border border-[#cce3d7] text-sm text-[#0f1f1a] focus:outline-none focus:border-[#28a870]"
-            />
+          {/* Tulisan Brand di Bawah Logo */}
+          <div className="space-y-1.5 pt-1">
+            <span className="font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight uppercase text-white drop-shadow-sm block">
+              KlesiProperty<span className="text-white">.</span>
+            </span>
+
+            <p className="text-[11px] sm:text-xs font-semibold text-neutral-400 uppercase tracking-[0.25em]">
+              Biro Properti &amp; Investasi Jabodetabek
+            </p>
           </div>
+        </div>
+      </div>
 
-          <motion.button
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-            type="submit"
-            disabled={loading}
-            className="w-full py-3.5 px-6 text-sm font-bold text-white bg-[#28a870] hover:bg-[#1f8b5b] transition-colors flex items-center justify-center gap-2"
-          >
-            <LogIn className="w-4 h-4" />
-            {loading ? "Memverifikasi..." : "Masuk ke Dashboard"}
-          </motion.button>
-        </form>
+      <div className="w-full lg:w-[52%] xl:w-[55%] flex flex-col justify-between p-6 sm:p-12 lg:p-16 relative">
+        {/* Navigasi Atas: Tombol Kembali ke Beranda */}
+        <div className="flex justify-between items-center mb-6 lg:mb-0">
 
-        <div className="mt-8 text-center">
-          <a
+          <Link
             href="/"
-            className="text-xs font-semibold text-[#28a870] hover:underline"
+            className="inline-flex items-center gap-2 text-xs font-semibold text-neutral-600 hover:text-neutral-950 transition-colors py-1.5 px-3.5 rounded-full bg-white hover:bg-neutral-100 border border-neutral-200/80 shadow-2xs"
           >
-            Kembali ke Halaman Depan
-          </a>
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Kembali ke Beranda</span>
+          </Link>
         </div>
-      </motion.div>
+
+        <div className="w-full max-w-sm sm:max-w-md mx-auto my-auto space-y-6">
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-neutral-950 tracking-tight">
+              Login Admin
+            </h1>
+            <p className="text-xs sm:text-sm text-neutral-500 font-normal">
+              Masuk untuk mengelola katalog, foto properti, dan permohonan survey.
+            </p>
+          </div>
+
+          {/* Pesan Error (Jika Login Gagal) */}
+          {errorMsg && (
+            <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 font-medium flex items-center gap-2.5">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
+
+    
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Input Email / Username */}
+            <div className="space-y-1.5 text-left">
+              <label className="block text-xs font-bold text-neutral-800 uppercase tracking-wider">
+                Email / Username*
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-neutral-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="email"
+                  required
+                  placeholder="admin@klesiproperty.id"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3.5 bg-white border border-neutral-200 hover:border-neutral-300 rounded-xl text-xs sm:text-sm font-medium text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950 shadow-2xs transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Input Password */}
+            <div className="space-y-1.5 text-left">
+              <label className="block text-xs font-bold text-neutral-800 uppercase tracking-wider">
+                Kata Sandi*
+              </label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-neutral-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  placeholder="Masukkan kata sandi..."
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-11 pr-11 py-3.5 bg-white border border-neutral-200 hover:border-neutral-300 rounded-xl text-xs sm:text-sm font-medium text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950 shadow-2xs transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-900 p-1 cursor-pointer transition-colors"
+                  aria-label={showPassword ? "Sembunyikan password" : "Lihat password"}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+        
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 px-6 rounded-xl text-xs sm:text-sm font-bold text-white bg-neutral-950 hover:bg-neutral-800 transition-all duration-200 cursor-pointer shadow-sm hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {loading ? (
+                  <span>Memverifikasi...</span>
+                ) : (
+                  <>
+                    <span>Masuk ke Dashboard</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

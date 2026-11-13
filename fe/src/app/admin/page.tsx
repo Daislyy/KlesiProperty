@@ -10,19 +10,17 @@ import PropertyFormModal from "@/components/admin/PropertyFormModal";
 import ImageUploadModal from "@/components/admin/ImageUploadModal";
 import { Property, Survey, AdminUser } from "@/types";
 import { API_BASE, DEFAULT_PROPERTIES } from "@/lib/api";
-import { Building, Calendar, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { Building2, CheckCircle2, Clock, Plus } from "lucide-react";
 
 export default function AdminPage() {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<AdminUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Dashboard Data State
   const [activeTab, setActiveTab] = useState<"properties" | "surveys">("properties");
   const [properties, setProperties] = useState<Property[]>(DEFAULT_PROPERTIES);
   const [surveys, setSurveys] = useState<Survey[]>([]);
 
-  // Modal States
   const [showPropertyModal, setShowPropertyModal] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [managingImagesProperty, setManagingImagesProperty] = useState<Property | null>(null);
@@ -30,25 +28,21 @@ export default function AdminPage() {
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
+    setTimeout(() => setToastMessage(null), 3200);
   };
 
-  // Ambil data properti
   const fetchProperties = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE}/api/properties?limit=50`);
       if (res.ok) {
         const json = await res.json();
-        if (json.data && json.data.length > 0) {
-          setProperties(json.data);
-        }
+        if (json.data?.length) setProperties(json.data);
       }
     } catch {
-      // Offline fallback
+      // Fallback lokal
     }
   }, []);
 
-  // Ambil data survey admin
   const fetchSurveys = useCallback(async (authToken: string) => {
     try {
       const res = await fetch(`${API_BASE}/api/admin/surveys`, {
@@ -56,9 +50,7 @@ export default function AdminPage() {
       });
       if (res.ok) {
         const json = await res.json();
-        if (json.data) {
-          setSurveys(json.data);
-        }
+        if (json.data) setSurveys(json.data);
       }
     } catch {
       setSurveys([
@@ -67,9 +59,9 @@ export default function AdminPage() {
           property_id: 1,
           name: "Rian Hendra",
           phone: "08123456789",
-          survey_date: "2026-11-08",
+          survey_date: "2026-11-12",
           survey_time: "10:00",
-          message: "Ingin lihat saluran air dan sertifikat tanah.",
+          message: "Ingin cek akses jalan dan sertifikat SHM.",
           status: "baru",
           property_title: "Rumah Kebun Parahyangan",
           property_location: "Bandung Barat",
@@ -78,7 +70,6 @@ export default function AdminPage() {
     }
   }, []);
 
-  // Cek token di localStorage saat startup
   useEffect(() => {
     const savedToken = localStorage.getItem("admin_token");
     const savedUser = localStorage.getItem("admin_user");
@@ -89,7 +80,7 @@ export default function AdminPage() {
         try {
           setUser(JSON.parse(savedUser));
         } catch {
-          // ignore error
+          // ignore parsing error
         }
       }
       fetchProperties();
@@ -115,41 +106,60 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[100dvh] flex items-center justify-center bg-[#f7faf8] text-[#3d5047] text-sm">
-        Memeriksa sesi login...
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50 text-neutral-500 text-xs font-medium">
+        Memeriksa sesi...
       </div>
     );
   }
 
-  // Jika belum login, tampilkan layar login
   if (!token) {
     return <AdminLogin onLoginSuccess={handleLoginSuccess} />;
   }
 
-  // Statistik Ringkas
   const totalProps = properties.length;
   const availableProps = properties.filter((p) => p.status === "tersedia").length;
   const newSurveys = surveys.filter((s) => s.status === "baru").length;
-  const totalSurveys = surveys.length;
+
+  const stats = [
+    {
+      label: "Total Listing",
+      value: totalProps,
+      desc: "Unit aktif terdaftar",
+      icon: Building2,
+      accent: "text-neutral-900 bg-neutral-100",
+    },
+    {
+      label: "Unit Tersedia",
+      value: availableProps,
+      desc: "Siap dipasarkan",
+      icon: CheckCircle2,
+      accent: "text-emerald-700 bg-emerald-50",
+    },
+    {
+      label: "Survey Baru",
+      value: newSurveys,
+      desc: newSurveys > 0 ? "Perlu konfirmasi WhatsApp" : "Semua terjadwal",
+      icon: Clock,
+      accent: "text-neutral-900 bg-neutral-100",
+    },
+  ];
 
   return (
-    <div className="min-h-[100dvh] bg-[#f7faf8] text-[#0f1f1a]">
-      {/* Toast Feedback */}
+    <div className="min-h-screen bg-neutral-50/70 text-neutral-900 flex flex-col font-sans">
       <AnimatePresence>
         {toastMessage && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-5 right-5 z-50 px-4 py-2.5 bg-[#0f1f1a] text-white text-xs font-bold flex items-center gap-2"
+            initial={{ opacity: 0, y: -16, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -16, scale: 0.95 }}
+            className="fixed top-5 right-5 z-50 px-4 py-2.5 bg-neutral-950 text-white text-xs font-medium rounded-lg shadow-xl border border-neutral-800 flex items-center gap-2.5"
           >
-            <CheckCircle2 className="w-4 h-4 text-[#3ecf8e]" />
-            {toastMessage}
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{toastMessage}</span>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Header Admin */}
       <AdminHeader
         user={user}
         activeTab={activeTab}
@@ -158,102 +168,96 @@ export default function AdminPage() {
         surveyCount={newSurveys}
       />
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* Metric Cards Panel */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="bg-white p-5"
-          >
-            <div className="flex items-center justify-between text-[#6a8075] mb-2">
-              <span className="text-xs font-semibold">Total Unit Terdaftar</span>
-              <div className="w-8 h-8 bg-[#eaf6f0] flex items-center justify-center text-[#28a870]">
-                <Building className="w-4 h-4" />
-              </div>
-            </div>
-            <p className="text-2xl font-bold text-[#0f1f1a]">{totalProps}</p>
-          </motion.div>
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-neutral-200/60"
+        >
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-neutral-950 tracking-tight">
+              Ikhtisar Manajemen
+            </h1>
+            <p className="text-xs sm:text-sm text-neutral-500 mt-0.5">
+              Kelola inventaris properti Jabodetabek dan respon permohonan survey calon pembeli.
+            </p>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.05 }}
-            className="bg-white p-5"
-          >
-            <div className="flex items-center justify-between text-[#6a8075] mb-2">
-              <span className="text-xs font-semibold">Unit Siap Huni</span>
-              <div className="w-8 h-8 bg-[#eaf6f0] flex items-center justify-center text-[#28a870]">
-                <CheckCircle2 className="w-4 h-4" />
-              </div>
-            </div>
-            <p className="text-2xl font-bold text-[#1f8b5b]">{availableProps}</p>
-          </motion.div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setEditingProperty(null);
+                setShowPropertyModal(true);
+              }}
+              className="px-4 py-2 text-xs font-semibold text-white bg-neutral-950 hover:bg-neutral-800 rounded-lg transition-all shadow-xs flex items-center gap-2 cursor-pointer active:scale-98"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Tambah Properti</span>
+            </button>
+          </div>
+        </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-            className="bg-white p-5"
-          >
-            <div className="flex items-center justify-between text-[#6a8075] mb-2">
-              <span className="text-xs font-semibold">Survey Baru (Pending)</span>
-              <div className="w-8 h-8 bg-amber-50 flex items-center justify-center text-amber-600">
-                <Clock className="w-4 h-4" />
-              </div>
-            </div>
-            <p className="text-2xl font-bold text-amber-700">{newSurveys}</p>
-          </motion.div>
+        <section className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+          {stats.map((stat, i) => {
+            const Icon = stat.icon;
+            return (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: i * 0.05 }}
+                whileHover={{ y: -2 }}
+                className="bg-white p-4 sm:p-5 rounded-xl border border-neutral-200/80 shadow-xs hover:shadow-sm transition-all"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-medium text-neutral-500">{stat.label}</span>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${stat.accent}`}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="text-2xl sm:text-3xl font-extrabold text-neutral-950 tracking-tight">
+                  {stat.value}
+                </div>
+                <p className="text-[11px] text-neutral-400 mt-1 font-medium">{stat.desc}</p>
+              </motion.div>
+            );
+          })}
+        </section>
 
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.15 }}
-            className="bg-white p-5"
-          >
-            <div className="flex items-center justify-between text-[#6a8075] mb-2">
-              <span className="text-xs font-semibold">Total Jadwal Kunjungan</span>
-              <div className="w-8 h-8 bg-[#eaf6f0] flex items-center justify-center text-[#28a870]">
-                <Calendar className="w-4 h-4" />
-              </div>
-            </div>
-            <p className="text-2xl font-bold text-[#0f1f1a]">{totalSurveys}</p>
-          </motion.div>
-        </div>
-
-        {/* Konten Tab Aktif */}
-        {activeTab === "properties" ? (
-          <PropertyTable
-            properties={properties}
-            token={token}
-            onRefresh={() => {
-              fetchProperties();
-              showToast("Data properti diperbarui.");
-            }}
-            onAdd={() => {
-              setEditingProperty(null);
-              setShowPropertyModal(true);
-            }}
-            onEdit={(p) => {
-              setEditingProperty(p);
-              setShowPropertyModal(true);
-            }}
-            onManageImages={(p) => setManagingImagesProperty(p)}
-          />
-        ) : (
-          <SurveyTable
-            surveys={surveys}
-            token={token}
-            onRefresh={() => {
-              fetchSurveys(token);
-              showToast("Status survey diperbarui.");
-            }}
-          />
-        )}
+        <section className="bg-white rounded-xl border border-neutral-200/80 shadow-xs p-4 sm:p-6">
+          {activeTab === "properties" ? (
+            <PropertyTable
+              properties={properties}
+              token={token}
+              onRefresh={() => {
+                fetchProperties();
+                showToast("Data properti diperbarui.");
+              }}
+              onAdd={() => {
+                setEditingProperty(null);
+                setShowPropertyModal(true);
+              }}
+              onEdit={(p) => {
+                setEditingProperty(p);
+                setShowPropertyModal(true);
+              }}
+              onManageImages={(p) => setManagingImagesProperty(p)}
+            />
+          ) : (
+            <SurveyTable
+              surveys={surveys}
+              token={token}
+              onRefresh={() => {
+                fetchSurveys(token);
+                showToast("Data jadwal survey diperbarui.");
+              }}
+            />
+          )}
+        </section>
       </main>
 
-      {/* Modal Tambah/Edit Properti */}
       {showPropertyModal && (
         <PropertyFormModal
           property={editingProperty}
@@ -266,7 +270,6 @@ export default function AdminPage() {
         />
       )}
 
-      {/* Modal Kelola Foto Properti */}
       {managingImagesProperty && (
         <ImageUploadModal
           property={managingImagesProperty}
@@ -274,7 +277,7 @@ export default function AdminPage() {
           onClose={() => setManagingImagesProperty(null)}
           onSuccess={() => {
             fetchProperties();
-            showToast("Foto properti diperbarui.");
+            showToast("Galeri foto properti diperbarui.");
           }}
         />
       )}

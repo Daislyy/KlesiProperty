@@ -52,6 +52,6 @@ export const validateProperty = [
 // Validasi ubah status survey
 export const validateSurveyStatus = [
   body('status').trim().notEmpty().withMessage('Status wajib diisi')
-    .isIn(['baru', 'dikonfirmasi', 'selesai', 'dibatalkan']).withMessage('Status tidak valid'),
+    .isIn(['baru', 'dikonfirmasi', 'dihubungi', 'selesai', 'batal', 'dibatalkan']).withMessage('Status tidak valid'),
   cekValidasi
 ];
